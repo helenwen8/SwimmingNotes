@@ -19,7 +19,7 @@ midiOutput = pygame.midi.Output(pygame.midi.get_default_output_id())
 # -----initialize current level (to be changed)
 currentMission = MissionOne(size)
 currentLevel = currentMission.levelOne
-currentTerrain = currentLevel["terrain"]
+currentTerrain = currentLevel["terrainObjects"]
 
 player = MissionOne.player
 
@@ -48,26 +48,26 @@ while 1:
     if keys[pygame.K_LEFT]:
         if (player.x > 0):
             player.move(-10, 0)
-        else:
-            currentLevel = currentMission.getPreviousLevel(currentLevel)
-            currentTerrain = currentLevel["terrain"]
-            player.x = width - player.radius    
+        # else:
+        #     if currentMission.getPreviousLevel(currentLevel) != None:
+        #         currentLevel = currentMission.getPreviousLevel(currentLevel)
+        #         currentTerrain = currentLevel["terrain"]
+        #         player.x = width - player.radius    
     if keys[pygame.K_RIGHT]: 
         if (player.x < width):
             player.move(10, 0)
-        else:
-            currentLevel = currentMission.getNextLevel(currentLevel)
-            currentTerrain = currentLevel["terrain"]
-            player.x = 0 + player.radius
-                
-        #     elif event.key == pygame.K_UP:
-        #         player.move(0, -20)
-        #         '''TO DO: make wall sticky - needs special attention'''
-        #     elif event.key == pygame.K_DOWN:  
-        #         player.move(0, 20)
+        # else:
+        #     currentLevel = currentMission.getNextLevel(currentLevel)
+        #     currentTerrain = currentLevel["terrain"]
+        #     player.x = 0 + player.radius
 
-    # ---check if we are somehow inside terrain---
-    # this is where hitbox comes in
+    # ---check gravity---
+    currentlyInAir = player.isExistable(currentLevel["existableSpace"])
+    if currentlyInAir:
+        player.doGravity()
+    else:
+        player.resetInAir()
+
     
 
     # ---draw all the components--- #

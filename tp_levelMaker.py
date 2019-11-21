@@ -32,61 +32,75 @@ class MissionOne(object):
         self.width, self.height = size
 
         self.levelOne()        # also set up player
-        self.levels = [self.levelOne, self.levelTwo, self.levelThree]
+        # self.levelTwo()
+        # self.levelThree()
+        self.levels = [self.levelOne]
         
         
     def getNextLevel(self, currentLevel): 
         if currentLevel != self.levelThree:
             index = self.levels.index(currentLevel)
             return self.levels[index + 1]
-        else: return self.levelThree
+        else: return None
 
     def getPreviousLevel(self, currentLevel):
         if currentLevel != self.levelOne:
             index = self.levels.index(currentLevel)
             return self.levels[index - 1]
-        else: return self.levelOne
+        else: return None
 
+    def setuplevels(self):
+        self.levelOne
+        self.levelTwo
+        self.levelThree
+        return [self.levelOne, self.levelTwo, self.levelThree]
 
     # because not randomized yet, we will just hardcode some level
     def levelOne(self):
         #first, set up player because this is level one
         MissionOne.player = Player((self.width // 5, self.height // 3 * 2))
 
+
+        # we will have two lists (or sets? dictionary?)
+        # one with a list of existable space - simply a list of boundaries
+        # one will be just a list of objects 
+
         # set up terrain
         terrains = copy.deepcopy(terrainDict)
-        tempList = []
-        tempList.append([(0, self.height / 3), (self.width / 6, self.height / 5),
-                          (self.width / 5, 0), (0, 0)])
-        tempList.append([(0, self.height/5 * 4), (self.width, self.height / 6 * 5),
-                          (self.width, self.height), (0, self.height)])
-        tempList.append([(self.width, self.height / 3), (self.width / 6 * 5, self.height / 5),
-                          (self.width / 5 * 4, 0), (self.width, 0)])
 
-        for points in tempList:
-            terrains["normal"].add(Terrain(points, (0, 0, 0), "polygon"))
+        '''to do: make this into a text file or smth or this program will be shit'''
+        templist = []
+        # a random blob
+        terrain1 = [(0, self.height // 3), (50, self.height // 5),
+                         (100, 0), (0, 0)]
+
+        terrain1Existable = terrain1[:-1]
+        templist.append(terrain1)
+        # the ground terrain
+        terrain2Existable = [(10 * i, self.height // 5 * 4) for i in range(0, self.width, 5)]
+        terrain2 = [(0, self.height)] + terrain2Existable + [(self.width, self.height)]
+        templist.append(terrain2)
+
+        terrainList = [terrain1Existable, terrain2Existable]
+        existableSpace = Terrain.mergeTerrainList(terrainList)
+        for points in templist:
+            terrains["normal"].add(Terrain(points, (0, 0, 0)))
 
         # get everything into the thing
         # (terrain, music, collectibles)
-        self.levelOne = {"terrain": terrains, 
+        # object at index 1, rects at index 2
+        self.levelOne = {"terrainObjects": terrains, 
+                         "existableSpace": existableSpace,
                          "music": None,
                          "collectibles": None}
 
-    def levelTwo(self):
-        self.levelTwo = {"terrain": terrains, 
-                         "music": None,
-                         "collectibles": None}
+    # def levelTwo(self):
+    #     self.levelTwo = {"terrain": terrains, 
+    #                      "music": None,
+    #                      "collectibles": None}
     
-    def levelThree(self):
-        self.levelThree = {"terrain": terrains, 
-                           "music": None,
-                           "collectibles": None}
-    
-
-'''
-do we want to do staticmethod or nah
-static method: access each level by calling classname
-which is prob better
-not static method: gotta make a whole instance
-
-'''
+    # def levelThree(self):
+    #     self.levelThree = {"terrain": terrains, 
+    #                        "music": None,
+    #                        "collectibles": None}
+                                               
