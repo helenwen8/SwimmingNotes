@@ -19,7 +19,9 @@ midiOutput = pygame.midi.Output(pygame.midi.get_default_output_id())
 # -----initialize current level (to be changed)
 currentMission = MissionOne(size)
 currentLevel = currentMission.levelOne
-currentTerrain = currentLevel["terrainObjects"]
+currentTerrain = currentLevel["terrains"]
+currentExistables = currentLevel["existables"]
+# currentMusic = something
 
 player = MissionOne.player
 
@@ -38,12 +40,14 @@ while 1:
             pygame.midi.quit    
             sys.exit()                  
         
-        # get_pressed inspired from https://stackoverflow.com/questions/9961563/how-can-i-make-a-sprite-move-when-key-is-held-down 
-    keys = pygame.key.get_pressed()  #checking pressed keys
+    # checking pressed keys, inspired from 
+    # https://stackoverflow.com/questions/9961563/how-can-i-make-a-sprite-move-when-key-is-held-down 
+    keys = pygame.key.get_pressed() 
     if keys[pygame.K_UP]:
         player.move(0, -10)
-        '''TO DO: make wall sticky - needs special attention'''
+        '''TO DO: make wall sticky - needs special attention''' # not mvp so fuck it
     if keys[pygame.K_DOWN]:
+        # we check if player is below terrain in a later code
         player.move(0, 10)   
     if keys[pygame.K_LEFT]:
         if (player.x > 0):
@@ -61,14 +65,14 @@ while 1:
         #     currentTerrain = currentLevel["terrain"]
         #     player.x = 0 + player.radius
 
-    # ---check gravity---
-    currentlyInAir = player.isExistable(currentLevel["existableSpace"])
+    # ---check gravity---       
+    '''no wall climbing so far'''
+    currentlyInAir = player.isExistable(currentExistables)
     if currentlyInAir:
         player.doGravity()
     else:
         player.resetInAir()
-
-    
+        player.y = Terrain.getHeight(player.x, 0, currentExistables) - player.radius
 
     # ---draw all the components--- #
     screen.fill((255, 255, 255))                
