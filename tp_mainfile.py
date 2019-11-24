@@ -52,19 +52,23 @@ while 1:
     if keys[pygame.K_LEFT]:
         if (player.x > 0):
             player.move(-10, 0)
-        # else:
-        #     if currentMission.getPreviousLevel(currentLevel) != None:
-        #         currentLevel = currentMission.getPreviousLevel(currentLevel)
-        #         currentTerrain = currentLevel["terrain"]
-        #         player.x = width - player.radius    
+        else:
+            '''todo: make this prettier?'''
+            if currentMission.getPreviousLevel(currentLevel) != None:
+                currentLevel = currentMission.getPreviousLevel(currentLevel)
+                currentTerrain = currentLevel["terrains"]
+                currentExistables = currentLevel["existables"]
+                player.x = width - player.radius    
     if keys[pygame.K_RIGHT]: 
         if (player.x < width):
             player.move(10, 0)
-        # else:
-        #     currentLevel = currentMission.getNextLevel(currentLevel)
-        #     currentTerrain = currentLevel["terrain"]
-        #     player.x = 0 + player.radius
-
+        else:
+            if currentMission.getNextLevel(currentLevel) != None:
+                currentLevel = currentMission.getNextLevel(currentLevel)
+                currentTerrain = currentLevel["terrains"]
+                currentExistables = currentLevel["existables"]
+                player.x = 0 + player.radius
+                
     # ---check gravity---       
     '''no wall climbing so far'''
     currentlyInAir = player.isExistable(currentExistables)
@@ -72,7 +76,7 @@ while 1:
         player.doGravity()
     else:
         player.resetInAir()
-        player.y = Terrain.getHeight(player.x, 0, currentExistables) - player.radius
+        player.y = player.getHeight(currentExistables) - player.radius
 
     # ---draw all the components--- #
     screen.fill((255, 255, 255))                

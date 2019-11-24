@@ -10,7 +10,7 @@
 # we can have a CLASS ATTRIBUTE!!!! of all the collectable
 # and the one we havent collect yet
 
-import copy
+import copy, io
 import pygame
 from tp_terrains import *
 
@@ -30,53 +30,13 @@ class MissionOne(Missions):
     def levelOne(self):
         # set up player because this is level one
         MissionOne.player = Player((self.width // 5, self.height // 3 * 2))
-
-        # set up terrain
-        terrains = copy.deepcopy(Missions.terrainDict)
-
-        templist = []
-        terrain1 = [(0, self.height // 3), (50, self.height // 5),
-                         (100, 0), (0, 0)]
-        terrain1Existable = terrain1[:-1]
-
-        templist.append(terrain1)
-
-        # the ground terrain
-        terrain2Existable = [(10 * i, self.height // 5 * 4) for i in range(0, self.width, 5)]
-        terrain2 = [(0, self.height)] + terrain2Existable + [(self.width, self.height)]
-        templist.append(terrain2)
-
-        terrainList = [terrain1Existable, terrain2Existable]
-        existableSpace = Terrain.mergeTerrainList(terrainList)
-        for points in templist:
-            terrains["normal"].add(Terrain(points, (0, 0, 0)))
-
         # return a level data dictionary
-        self.levelOne = copy.deepcopy(Missions.levelDict)
-        self.levelOne = {"terrains": terrains, 
-                         "existables": existableSpace,
-                         "music": None,
-                         "collectibles": None}
+        self.levelOne = Missions.initiateLevel("level_info/mission1_level1.txt")
 
     def levelTwo(self):
         # lets do this hoe
-
-
-        terrain1Existable =  [(10 * i, self.height // 5) for i in range(0, self.width, 5)]
-        terrain2 = [(0, 0)] + terrain2Existable + [(self.width, 0)]
-        # the ground terrain
-        terrain2Existable = [(10 * i, self.height // 5 * 4) for i in range(0, self.width, 5)]
-        terrain2 = [(0, self.height)] + terrain2Existable + [(self.width, self.height)]
-        templist.append(terrain2)
-
-
-        self.levelTwo = copy.deepcopy(Missions.levelDict)
-        self.levelTwo = {"terrain": terrains, 
-                         "music": None,
-                         "collectibles": None}
+        self.levelTwo = Missions.initiateLevel("level_info/mission1_level2.txt")
     
-    # def levelThree(self):
-    #     self.levelThree = {"terrain": terrains, 
-    #                        "music": None,
-    #                        "collectibles": None}
-                                               
+    def levelThree(self):
+        self.levelThree = Missions.initiateLevel("level_info/mission1_level3.txt")
+

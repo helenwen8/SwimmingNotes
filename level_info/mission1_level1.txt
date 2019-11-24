@@ -1,0 +1,17 @@
+terrains
+[(0,height//3),(50,height//5),(100,0),(0,0)]
+compr=[(0,height)]+[(10*i,height//5*4) for i in range(0,width,5)]+[(width,height)] 
+ENDterrains
+
+existables
+[(0,height//3),(50,height//5),(100,0)]
+compr=[(10*i,height//5*4) for i in range(0,width,5)]
+ENDexistables
+
+music 
+
+ENDmusic
+
+collectibles 
+
+ENDcollectibles

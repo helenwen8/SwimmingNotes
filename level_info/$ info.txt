@@ -1,0 +1,15 @@
+Each file is contains information for each Mission_Level.
+
+There are currently four groups of texts per Mission_Level file:
+	terrains, existantes, music, collectibles
+Each section concludes with the line END + section name
+
+Right now, the keyword compr means we are doing list comprehension.
+That shit is buggy and I don’t think I am modifying the local variables, but it is a messy clusterfuck.
+But bc we are using dictionary, I think we will be okay. (Thank you python I guess)
+
+We use eval and exec because they re cool.
+
+KEYWORDS:
+	height = canvas height
+	width  = canvas width
