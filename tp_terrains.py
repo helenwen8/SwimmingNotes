@@ -4,9 +4,19 @@
 # will be mostly used by levelMaker.py
 ####################################################
 
-import copy, io
+import copy, io, decimal
 import pygame
 pygame.init()
+
+# helper functions from 112 homework
+# thanks, 112!
+
+def roundHalfUp(d):
+    # Round to nearest with ties going away from zero.
+    rounding = decimal.ROUND_HALF_UP
+    # See other rounding options here:
+    # https://docs.python.org/3/library/decimal.html#rounding-modes
+    return int(decimal.Decimal(d).to_integral_value(rounding=rounding))
 
 # -----initialize player class----- #
 
@@ -14,7 +24,6 @@ class Player(object):
     def __init__(self, center):
         self.radius = 30
         self.color = (255, 204, 204)    # to do: change this
-        self.rect = None
         self.x, self.y = center[0], center[1]
         # ---for gravity & wall climbing--- 
         self.isInAir = True
@@ -26,8 +35,8 @@ class Player(object):
         self.rect = pygame.draw.circle(display, self.color, 
                     (int(self.x), int(self.y)), self.radius)
     
-    def getRect(self):
-        return self.rect    # do we need this?
+    def checkCollision(self, others):
+        return self.rect.collidelist(others)
 
     # ---moving physics--- 
     def move(self, dx, dy):
@@ -49,22 +58,22 @@ class Player(object):
 
     def doGravity(self):
         self.count += 1
-        self.move(0, 1 * self.count)
+        self.move(0, 2 * self.count)
 
     # the following code works, not sure if they will still work later lmao
-    def getNearestY(self, index, existables):
-        yList = existables[index]
-        nearestY = yList[0]
-        for y in yList:
-            if abs(self.y - y) <= abs(self.y - nearestY):
-                pass
-        pass
+    # def getNearestY(self, index, existables):
+    #     yList = existables[index]
+    #     nearestY = yList[0]
+    #     for y in yList:
+    #         if abs(self.y - y) <= abs(self.y - nearestY):
+    #             pass
+    #     pass
 
-    def getNearestX(self, existables):
-        nearestX = 0
-        for x in existables:
-            pass
-        pass
+    # def getNearestX(self, existables):
+    #     nearestX = 0
+    #     for x in existables:
+    #         pass
+    #     pass
 
     def getHeight(self, existables):   
         # we are assuming each point has a gap of 50px
@@ -76,30 +85,35 @@ class Player(object):
         for y in yList:
             if abs(self.y - y) <= abs(self.y - nearestY):
                 nearestY = y
-
         #dHeight = ((existables[leftIndex][yIndex] - existables[leftIndex + 50][yIndex])
         #          / 50) * remainder
-        
         return nearestY     #existables[leftIndex][yIndex]# - dHeight
 
 # -----collectibles (basically music notes)----- #
 
 class Collectibles(object):     
     radius = 10                 # they will all be the same
-    def __init__(self, pitch, center):
-        self.pitch = pitch
-        self.center = center
-        self.color = 0, 0, 0
+    color = (204, 229, 255)
+    def __init__(self, center, duration, statusByte):
+        #self.pitch = pitch
+        self.center = center  
+        self.status = statusByte    
+        self.duration = duration
+        #self.color = (204, 229, 255)
+        self.isCollected = False
 
     def drawCollectibles(self, display):
-        self.rect = pygame.draw.circle(display, self.color, self.center, self.radius)
+        if not self.isCollected:
+            self.rect = pygame.draw.circle(display, self.color, self.center, self.radius)
+
+    def changeCollected(self):
+        # do this so we can do checkpoint!
+        self.isCollected = not self.isCollected
 
 # -----terrains (main class)----- #
 class Terrain(object):
-    # type - sharp edges or smooth arcs
-    # pointsList - know where to draw the things
     def __init__(self, pointsList, color):
-        self.pointsList = pointsList
+        self.pointsList = pointsList        # where to draw the things
         self.color = color
         #self.type = terrainType     # normal, sticky, bad
 
@@ -116,7 +130,6 @@ class Terrain(object):
                 if x in d:      d[x].append(y)
                 else:           d[x] = [y]
         return d
-
 
 ''' dont do the following because you need all the time to do other shit'''       
 # so this is the type of terrain where you can climb wall on
@@ -136,27 +149,26 @@ class ScaryTerrain(Terrain):
 
 # so we make everything easier, I guess
 class Missions(object):
-    # for easier 
+    # terrains grouped by types
     terrainDict = {"normal": set(), "sticky": set(), "bad": set()}
-    musicDict = {1: [], 2: [], 3: []}
+    # music, grouped by timing
+    musicDict = {i: [] for i in range(0, 16)} 
+    # overall level information
     # "terrain" = a list of Terrain objects, defined by ME
     # "existables" = a dictionary with key of x'es, values of all borders
-    # 
+    # "collectibles" = list of (x, y) of music notes as well as their midi data
     levelDict = {"terrains": None, "existables": None,
-                 "music": None,  "collectibles": None}
+                 "collectRect": [],  "collectibles": set()}
 
     def __init__ (self, bpm, size):
         self.bpm = bpm
         self.width, self.height = size
-        pass
-
 
     # the following staticmethods are used so we can get info from text files
     # I totally forgot eval is a thing, thanks 112 linter
     # but now life is much easier
 
-    # referenced from 112 website on basic IO
-
+    # referenced from 112 website on basic IO 
     @staticmethod
     def getLines(pathname):
         with open(pathname, "rt") as myFile:
@@ -166,16 +178,12 @@ class Missions(object):
     def extractInfoFromSection(lines):
         # set up the keywords
         keywords = {"height": 500, "width": 1000}
-        height = 500
-        width = 1000
         toRet = []
         # for list comprehensions
         for line in lines:
             if line.startswith("compr"):
                 # THIS IS SO BAD HOLY SHIT
-                exec("global compr; " + line, keywords)
-                toRet.append(keywords["compr"])       # be careful of indents
-            # for built lists
+                toRet.append(eval(line[6:], keywords))  
             # to add: different terrains
             else:
                 toRet.append(eval(line, keywords))
@@ -202,20 +210,49 @@ class Missions(object):
         terrains = Missions.extractInfoFromSection(alllines[terrainStart + 1:terrainEnd])
         
         for points in terrains:
-            print (points)
+            # print (len(points)) might need to redo this bc we are making a lot of this
             levelInfo["terrains"]["normal"].add(Terrain(points, (0, 0, 0)))
 
         # set up existables:
         existStart, existEnd = Missions.getLineIndex("existables", alllines)
         existables = Missions.extractInfoFromSection(alllines[existStart + 1:existEnd])
         levelInfo["existables"] = Terrain.mergeTerrainList(existables)
+
+        # set up collectibles
+        collectStart, collectEnd = Missions.getLineIndex("collectibles", alllines)
+        collectibles = Missions.extractInfoFromSection(alllines[collectStart + 1:collectEnd])
+        for points in collectibles:
+            levelInfo["collectibles"].add(Collectibles(points[0], points[1], points[2]))
+
+        # set up collectibles' rect
+        #for note in levelInfo["collectibles"]:
+
+
         return levelInfo
 
+    @staticmethod
+    def initiateMusic(pathname):
+        # for initial program changes
+        alllines = Missions.getLines(pathname)
+        initStart, initEnd = Missions.getLineIndex("init", alllines)
+        return Missions.extractInfoFromSection(alllines[initStart + 1:initEnd])
 
-    # no need to return anything
-    def levelOne(self):     pass
-    def levelTwo(self):     pass
-    def levelThree(self):   pass
+    @staticmethod
+    def setupMusicDict(pathname):
+        alllines = Missions.getLines(pathname)
+        musicDict = copy.deepcopy(Missions.musicDict)
+        # get all the music infos
+        musicStart, musicEnd = Missions.getLineIndex("music", alllines)
+        music = Missions.extractInfoFromSection(alllines[musicStart + 1:musicEnd])
+        for note in music:  
+            # format: (availble zones, (status, data1, data2))
+            musicDict[note[0]].append(note[1])
+        return musicDict
+
+    # templates for level generations
+    def levelOne(self):         pass
+    def levelTwo(self):         pass
+    def levelThree(self):       pass
     def setupLevels(self):
         # call the three function to set up the levels
         # return a list so its easier to swtich between levels
@@ -223,8 +260,6 @@ class Missions(object):
         self.levelTwo()
         self.levelThree()
         return [self.levelOne, self.levelTwo, self.levelThree]
-
-    
 
     # for moving between levels/scenes
     def getNextLevel(self, currentLevel): 
@@ -239,5 +274,21 @@ class Missions(object):
             return self.levels[index - 1]
         else: return None
 
-    def playMusic(self):
-        pass    # lol 
+    @staticmethod
+    def getTimeInterval(bpm):
+        # we are going to get time interval for 16th notes
+        msInMinute = 60 * 1000
+        sixteen = 0.25     # because we count usually in 4th notes
+        return msInMinute / bpm * sixteen
+
+    def playMusic(self, currentTime):
+        errorMargin = self.timeInterval * 0.2
+        if currentTime % self.timeInterval <= 50:
+            #print ((currentTime // self.timeInterval) % 16)
+            index = int((currentTime / self.timeInterval) % 16)
+            #print (self.music[index])
+            return self.music[index]
+
+    def addMusicNotes(self, note):
+        for (time, statusByte) in note.status:
+            self.music[time].append((note.duration, statusByte))

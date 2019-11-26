@@ -11,21 +11,31 @@
 # and the one we havent collect yet
 
 import copy, io
-import pygame
+import pygame, pygame.midi
 from tp_terrains import *
 
 # -----make hardcoded levels----- #
 
 class MissionOne(Missions):
     player = None
-    # a happy, chill theme, bpm - 120? 130?
-    collectibles = {}
+    music = None
     alreadyCollected = []
     def __init__(self, size):
-        self.bpm = 120
+        self.bpm = 160
+        self.timeInterval = Missions.getTimeInterval(self.bpm)
         self.width, self.height = size
         # this should set up all the levels
         self.levels = self.setupLevels()
+        # set up music
+        self.initMusic()
+
+    def initMusic(self):
+        # set up the music dictionary
+        self.music = Missions.setupMusicDict("level_info/mission1_music.txt")
+        # this is so we can return the initial status bytes
+        self.music["init"] = set()
+        for (status, data1) in Missions.initiateMusic("level_info/mission1_music.txt"):
+            self.music["init"].add((status, data1))
 
     def levelOne(self):
         # set up player because this is level one
@@ -34,7 +44,6 @@ class MissionOne(Missions):
         self.levelOne = Missions.initiateLevel("level_info/mission1_level1.txt")
 
     def levelTwo(self):
-        # lets do this hoe
         self.levelTwo = Missions.initiateLevel("level_info/mission1_level2.txt")
     
     def levelThree(self):
