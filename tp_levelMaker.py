@@ -15,11 +15,6 @@ import pygame, pygame.midi
 from tp_miscellaneous import *
 from tp_missions import *
 
-
-# make start screen
-class StartScreen(object):
-    pass
-
 class MissionTutorial(Missions):
     currentCheckpoint = []
     def __init__(self, size, display):
@@ -28,42 +23,27 @@ class MissionTutorial(Missions):
         self.width, self.height = size
         self.display = display
         # this should set up all the levels
-        self.initMusic()
-        print (self.colorDict)
-        self.levels = self.setupLevels()
-        
-        # set up music
-        
+        self.initLevels()       # music and player
+        self.setupLevels("level_info/m0", self.display, self.colorDict)
 
-    def initMusic(self):
+    def initLevels(self):
         # set up the music dictionary
-        # self.music = Missions.setupMusicDict("level_info/mission0_music.txt")
-        # # this is so we can return the initial status bytes
-        # self.music["init"] = set()
-        # for (status, data1) in Missions.initiateMusic("level_info/mission0_music.txt"):
-        #     self.music["init"].add((status, data1))
+        self.music = Missions.setupMusicDict("level_info/m0/init.txt")
+        # this is so we can return the initial status bytes
+        self.music["init"] = set()
+        for (status, data1) in Missions.initiateMusic("level_info/m0/init.txt"):
+            self.music["init"].add((status, data1))
 
-        self.colorDict = Missions.initiateLevel("level_info/mission0_init.txt")[0]
-
-    def levelOne(self):
-        # set up player because this is level one
+        # set up color templates
+        self.colorDict = Missions.initiateLevel("level_info/m0/init.txt")[0]
+        # set up player and player.mask
         self.player = Player((self.width // 5, self.height // 3 * 2),
                                     self.colorDict["player"])
         self.player.mask = Missions.initiatePlayer(self.player, self.display)
 
-        # return a level data dictionary
-        self.levelOne = Missions.createLevel("level_info/mission0_1.txt", self.display, self.colorDict)
-
-    def levelTwo(self):
-        self.levelTwo = Missions.createLevel("level_info/mission0_2.txt", self.display, self.colorDict)
-    
-    def levelThree(self):
-        self.levelThree = Missions.createLevel("level_info/mission0_3.txt", self.display, self.colorDict)
-
-
 
 # -----make hardcoded levels----- #
-
+'''change this'''
 class MissionOne(Missions):
     player = None
     music = None
@@ -73,7 +53,7 @@ class MissionOne(Missions):
         self.timeInterval = Missions.getTimeInterval(self.bpm)
         self.width, self.height = size
         # this should set up all the levels
-        self.levels = self.setupLevels()
+        #self.levels = self.setupLevels()
         # set up music
         self.initMusic()
 

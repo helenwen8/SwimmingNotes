@@ -1,6 +1,6 @@
 # yay
 
-import sys, copy, random, time
+import sys, copy, random, time, os
 import pygame
 from tp_miscellaneous import * 
 
@@ -16,7 +16,7 @@ class Missions(object):
     # "terrain" = a list of Terrain objects, defined by ME
     # "existables" = a dictionary with key of x'es, values of all borders
     # "collectibles" = list of (x, y) of music notes as well as their midi data
-    levelDict = {"terrains": None, "existables": None, "terrainsDict": None,
+    levelDict = {"terrains": None, "existables": set(), "terrainsDict": None,
                  "collectRect": [],  "collectibles": set()}
     colorDict = {"terrains": None, "background": None, "collectibles": None}
 
@@ -39,16 +39,7 @@ class Missions(object):
         # set up the keywords
         keywords = {"height": 500, "width": 1000, "jump": 22}
         toRet = []
-        # for list comprehensions
-        for line in lines:
-            if line.startswith("compr"):
-                # THIS IS SO BAD HOLY SHIT
-                toRet.append(eval(line[6:], keywords))  
-            # to add: different terrains
-            else:
-
-                toRet.append(eval(line, keywords))
-                #print (eval(line, keywords))
+        for line in lines:      toRet.append(eval(line, keywords))
         return toRet
 
     @staticmethod
@@ -62,8 +53,6 @@ class Missions(object):
     # the following should set up the level automatically
     @staticmethod
     def createLevel(pathname, tempDisplay, colors):
-        tempDisplay.fill(WHITE)
-        
         # set up alllines and lists
         alllines = Missions.getLines(pathname)
         levelInfo = copy.deepcopy(Missions.levelDict)
@@ -73,21 +62,22 @@ class Missions(object):
         terrainStart, terrainEnd = Missions.getLineIndex("terrains", alllines)
         terrains = Missions.extractInfoFromSection(alllines[terrainStart + 1:terrainEnd])
         for points in terrains:
-            # print (len(points)) might need to redo this bc we are making a lot of this
             levelInfo["terrains"]["normal"].add(Terrain(points, colors["terrain"]))
-            #print (len(levelInfo["terrains"]["normal"]))
 
         # set up terrain masks
         for terrain in levelInfo["terrains"]["normal"]:
+            tempDisplay.fill(WHITE)
             terrain.drawTerrain(tempDisplay)
-        temp = pygame.display.get_surface()
-        temp.set_colorkey((colors["terrain"]))
-        levelInfo["existables"] = pygame.mask.from_surface(temp)
-        #print (len(levelInfo["existables"] ))
+            temp = pygame.display.get_surface()
+            pygame.image.save(tempDisplay, "lol.png")
+            
+            temp.set_colorkey(WHITE)
+            levelInfo["existables"].add(pygame.mask.from_surface(temp))
 
         # set up terrainDict for checking above/below
-        existableList = levelInfo["existables"].outline()
-        #print (existableList)
+        existableList = []
+        for existObject in levelInfo["existables"]:
+            existableList.append(existObject.outline())
         levelInfo["terrainsDict"] = Terrain.mergeTerrainList(existableList)
 
         # set up collectibles
@@ -103,15 +93,13 @@ class Missions(object):
         tempDisplay.fill(WHITE)
         player.rect = pygame.draw.circle(tempDisplay, BLACK, (30, 30), 30)
         temp = pygame.display.get_surface()
-        # pygame.image.save(tempDisplay, "level_info/temp/hmm.png")
-        # temp = pygame.image.load('level_info/temp/hmm.png').convert()
         temp.set_colorkey(WHITE)
         mask = pygame.mask.from_surface(temp)
-
         return mask
 
     @staticmethod
     def initiateLevel(pathname):
+        # set up color palette
         alllines = Missions.getLines(pathname)
         colorStart, colorEnd = Missions.getLineIndex("color", alllines)
         return Missions.extractInfoFromSection(alllines[colorStart + 1:colorEnd])
@@ -119,7 +107,6 @@ class Missions(object):
     @staticmethod
     def initiateMusic(pathname):
         alllines = Missions.getLines(pathname)
-
         # for initial program changes
         initStart, initEnd = Missions.getLineIndex("init", alllines)
         return Missions.extractInfoFromSection(alllines[initStart + 1:initEnd])
@@ -136,42 +123,38 @@ class Missions(object):
             musicDict[note[0]].append(note[1])
         return musicDict
 
-    # templates for level generations
-    def levelOne(self):         pass
-    def levelTwo(self):         pass
-    def levelThree(self):       pass
-    def setupLevels(self):
-        # call the three function to set up the levels
-        # return a list so its easier to swtich between levels
-        self.levelOne()
-        self.levelTwo()
-        self.levelThree()
-        return [self.levelOne, self.levelTwo, self.levelThree]
+    # saves a list of all levels
+    def setupLevels(self, path, display, colorDict):
+        self.levels = []
+        # basic IO referenced from 112
+        for filename in reversed(os.listdir(path)):
+            if filename == "init.txt": continue
+            levelInfo = Missions.createLevel(path + '/' + filename, display, colorDict)
+            self.levels.append(levelInfo)
 
     # for moving between levels/scenes
     def getNextLevel(self, currentLevel): 
-        if currentLevel != self.levelThree:
-            index = self.levels.index(currentLevel)
+        index = self.levels.index(currentLevel)
+        if index < len(self.levels) - 1:
             return self.levels[index + 1]
         else: return None
-
     def getPreviousLevel(self, currentLevel):
-        if currentLevel != self.levelOne:
-            index = self.levels.index(currentLevel)
+        index = self.levels.index(currentLevel)
+        if index > 0:
             return self.levels[index - 1]
         else: return None
 
     @staticmethod
     def getTimeInterval(bpm):
-        # we are going to get time interval for 16th notes
+        # we are going to get time interval for 8th notes
         msInMinute = 60 * 1000
-        sixteen = 0.25     # because we count usually in 4th notes
-        return msInMinute / bpm * sixteen
+        eighth = 0.5     # because we count usually in 4th notes
+        return msInMinute / bpm * eighth
 
     def playMusic(self, currentTime):
         errorMargin = self.timeInterval * 0.2
         if currentTime % self.timeInterval <= 50:
-            index = int((currentTime / self.timeInterval) % 16)
+            index = int((currentTime / self.timeInterval) % 8)
             return self.music[index]
 
     def addMusicNotes(self, note):
