@@ -8,9 +8,9 @@ compr=[(10*i,height//5*4) for i in range(0,width,5)]
 compr=[(10*i,height//5) for i in range(0,width,5)]
 ENDexistables
 
-music 
+color 
 
-ENDmusic
+ENDcolor
 
 collectibles
 [(100,height//5*4),2,[(0,(0x90,72,100)),(3,(0x80,72,100))]]
