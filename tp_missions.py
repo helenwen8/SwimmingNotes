@@ -4,7 +4,8 @@ import sys, copy, random, time
 import pygame
 from tp_miscellaneous import * 
 
-WHITE = (0, 0, 0)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 class Missions(object):
     # terrains grouped by types
@@ -15,8 +16,9 @@ class Missions(object):
     # "terrain" = a list of Terrain objects, defined by ME
     # "existables" = a dictionary with key of x'es, values of all borders
     # "collectibles" = list of (x, y) of music notes as well as their midi data
-    levelDict = {"terrains": None, "existables": None,
+    levelDict = {"terrains": None, "existables": None, "terrainsDict": None,
                  "collectRect": [],  "collectibles": set()}
+    colorDict = {"terrains": None, "background": None, "collectibles": None}
 
     def __init__ (self, bpm, size):
         self.bpm = bpm
@@ -59,59 +61,66 @@ class Missions(object):
 
     # the following should set up the level automatically
     @staticmethod
-    def initiateLevel(pathname, tempDisplay):
+    def createLevel(pathname, tempDisplay, colors):
+        tempDisplay.fill(WHITE)
+        
         # set up alllines and lists
         alllines = Missions.getLines(pathname)
         levelInfo = copy.deepcopy(Missions.levelDict)
         levelInfo["terrains"] = copy.deepcopy(Missions.terrainDict)
 
-        # set up terrain:
+        # set up terrain: 
         terrainStart, terrainEnd = Missions.getLineIndex("terrains", alllines)
         terrains = Missions.extractInfoFromSection(alllines[terrainStart + 1:terrainEnd])
-        
         for points in terrains:
             # print (len(points)) might need to redo this bc we are making a lot of this
-            levelInfo["terrains"]["normal"].add(Terrain(points, (0, 0, 0)))
+            levelInfo["terrains"]["normal"].add(Terrain(points, colors["terrain"]))
             #print (len(levelInfo["terrains"]["normal"]))
 
-        # set up masks:
+        # set up terrain masks
         for terrain in levelInfo["terrains"]["normal"]:
             terrain.drawTerrain(tempDisplay)
         temp = pygame.display.get_surface()
-        # pygame.image.save(tempDisplay, "level_info/temp/hehehe.png")
-        # temp = pygame.image.load('level_info/temp/hehehe.png').convert()
-        temp.set_colorkey(WHITE)
+        temp.set_colorkey((colors["terrain"]))
         levelInfo["existables"] = pygame.mask.from_surface(temp)
+        #print (len(levelInfo["existables"] ))
+
+        # set up terrainDict for checking above/below
+        existableList = levelInfo["existables"].outline()
+        #print (existableList)
+        levelInfo["terrainsDict"] = Terrain.mergeTerrainList(existableList)
 
         # set up collectibles
         collectStart, collectEnd = Missions.getLineIndex("collectibles", alllines)
         collectibles = Missions.extractInfoFromSection(alllines[collectStart + 1:collectEnd])
         for points in collectibles:
-            levelInfo["collectibles"].add(Collectibles(points[0], points[1], points[2]))
-
-        # set up collectibles' rect
-        #for note in levelInfo["collectibles"]:
-
+            levelInfo["collectibles"].add(Collectibles(points[0], points[1], points[2], colors["collectibles"]))
 
         return levelInfo
 
     @staticmethod
     def initiatePlayer(player, tempDisplay):
-        player.drawPlayer(tempDisplay)
+        tempDisplay.fill(WHITE)
+        player.rect = pygame.draw.circle(tempDisplay, BLACK, (30, 30), 30)
         temp = pygame.display.get_surface()
+        # pygame.image.save(tempDisplay, "level_info/temp/hmm.png")
+        # temp = pygame.image.load('level_info/temp/hmm.png').convert()
         temp.set_colorkey(WHITE)
         mask = pygame.mask.from_surface(temp)
 
         return mask
 
-    # @staticmethod
-    # def setupPlayerMask(player):
-    #     player.mask = 
+    @staticmethod
+    def initiateLevel(pathname):
+        alllines = Missions.getLines(pathname)
+        colorStart, colorEnd = Missions.getLineIndex("color", alllines)
+        return Missions.extractInfoFromSection(alllines[colorStart + 1:colorEnd])
 
     @staticmethod
     def initiateMusic(pathname):
-        # for initial program changes
         alllines = Missions.getLines(pathname)
+
+        # for initial program changes
         initStart, initEnd = Missions.getLineIndex("init", alllines)
         return Missions.extractInfoFromSection(alllines[initStart + 1:initEnd])
 

@@ -28,33 +28,37 @@ class MissionTutorial(Missions):
         self.width, self.height = size
         self.display = display
         # this should set up all the levels
+        self.initMusic()
+        print (self.colorDict)
         self.levels = self.setupLevels()
         
         # set up music
-        #self.initMusic()
+        
 
     def initMusic(self):
         # set up the music dictionary
-        self.music = Missions.setupMusicDict("level_info/mission0_music.txt")
-        # this is so we can return the initial status bytes
-        self.music["init"] = set()
-        for (status, data1) in Missions.initiateMusic("level_info/mission0_music.txt"):
-            self.music["init"].add((status, data1))
+        # self.music = Missions.setupMusicDict("level_info/mission0_music.txt")
+        # # this is so we can return the initial status bytes
+        # self.music["init"] = set()
+        # for (status, data1) in Missions.initiateMusic("level_info/mission0_music.txt"):
+        #     self.music["init"].add((status, data1))
+
+        self.colorDict = Missions.initiateLevel("level_info/mission0_init.txt")[0]
 
     def levelOne(self):
         # set up player because this is level one
         self.player = Player((self.width // 5, self.height // 3 * 2),
-                                    (160, 141, 127))
+                                    self.colorDict["player"])
         self.player.mask = Missions.initiatePlayer(self.player, self.display)
 
         # return a level data dictionary
-        self.levelOne = Missions.initiateLevel("level_info/mission0_1.txt", self.display)
+        self.levelOne = Missions.createLevel("level_info/mission0_1.txt", self.display, self.colorDict)
 
-    # def levelTwo(self):
-    #     self.levelTwo = Missions.initiateLevel("level_info/mission1_level2.txt")
+    def levelTwo(self):
+        self.levelTwo = Missions.createLevel("level_info/mission0_2.txt", self.display, self.colorDict)
     
-    # def levelThree(self):
-    #     self.levelThree = Missions.initiateLevel("level_info/mission1_level3.txt")
+    def levelThree(self):
+        self.levelThree = Missions.createLevel("level_info/mission0_3.txt", self.display, self.colorDict)
 
 
 

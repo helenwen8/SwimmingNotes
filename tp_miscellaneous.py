@@ -41,18 +41,17 @@ class Player(object):
 
     # credit to https://sivasantosh.wordpress.com/2012/07/23/using-masks-pygame/
     # for inspiration and some code idea
-    def checkMaskCollision(self, mask):
-        return mask.overlap(self.mask, self.rect.left, self.rect.top) != None
-
+    def inExistableSpace(self, mask):
+        return mask.overlap(self.mask, (self.x - self.radius, self.y - self.radius)) 
 
     # ---moving physics--- 
     def move(self, dx, dy):
         self.x += dx
         self.y += dy
-
    
     # check in bound
-    def isExistable(self, existableSpace):
+    def isExistable(self, existableMask):
+        #if self.checkMaskCollision(existableMask
         leftX = self.x - (self.x % 50)
         pointsBelow = 0
         for pointY in reversed(existableSpace[leftX]):
@@ -60,6 +59,8 @@ class Player(object):
             if pointY > self.y + self.radius:     # because y axis is like opposite
                 pointsBelow += 1
         return pointsBelow % 2 == 1
+
+    #def legalMove(self, existableMask):
 
     def resetInAir(self):
         self.isInAir = False
@@ -69,33 +70,18 @@ class Player(object):
         self.count += 1
         self.move(0, 1 * self.count)
 
-    # the following code works, not sure if they will still work later lmao
-    # def getNearestY(self, index, existables):
-    #     yList = existables[index]
-    #     nearestY = yList[0]
-    #     for y in yList:
-    #         if abs(self.y - y) <= abs(self.y - nearestY):
-    #             pass
-    #     pass
-
-    # def getNearestX(self, existables):
-    #     nearestX = 0
-    #     for x in existables:
-    #         pass
-    #     pass
-
-    def getHeight(self, existables):   
-        # we are assuming each point has a gap of 50px
-        remainder = self.x % 50
-        leftIndex = self.x - remainder
+    def getLowerHeight(self, existables): 
+        yList = existables[self.x]
         
-        yList = existables[leftIndex]
         nearestY = yList[0]
-        for y in yList:
-            if abs(self.y - y) <= abs(self.y - nearestY):
+        for y in reversed(yList):
+            #if abs(self.y - y) < abs(self.y - nearestY) and y > self.y:
+            if (self.y - y) < (self.y - nearestY) and y > self.y:
+            #if y > self.y and y > nearestY:
                 nearestY = y
         #dHeight = ((existables[leftIndex][yIndex] - existables[leftIndex + 50][yIndex])
         #          / 50) * remainder
+        print (self.x, self.y, yList, nearestY)
         return nearestY     #existables[leftIndex][yIndex]# - dHeight
 
 # -----collectibles (basically music notes)----- #
@@ -103,18 +89,14 @@ class Player(object):
 class Collectibles(object):     
     radius = 10                 # they will all be the same
     color = (204, 229, 255)
-    def __init__(self, center, duration, statusByte):
-        #self.pitch = pitch
+    def __init__(self, center, duration, statusByte, color):
         self.center = center  
         self.status = statusByte    
         self.duration = duration
-        
-        #Collectibles.color = color
-        self.isCollected = False
+        Collectibles.color = color
 
     def drawCollectibles(self, display):
-        if not self.isCollected:
-            self.rect = pygame.draw.circle(display, self.color, self.center, self.radius)
+        self.rect = pygame.draw.circle(display, self.color, self.center, self.radius)
 
     def changeCollected(self):
         # do this so we can do checkpoint!
@@ -125,7 +107,7 @@ class Terrain(object):
     def __init__(self, pointsList, color):
         self.pointsList = pointsList        # where to draw the things
         self.color = color
-        #self.type = terrainType     # normal, sticky, bad
+        #self.type = terrainType            # normal, sticky, bad
 
     def drawTerrain(self, display):
         pygame.draw.polygon(display, self.color, self.pointsList)
@@ -135,10 +117,9 @@ class Terrain(object):
     @staticmethod
     def mergeTerrainList(terrainList):
         d = {}
-        for lst in terrainList:
-            for (x, y) in lst:
-                if x in d:      d[x].append(y)
-                else:           d[x] = [y]
+        for (x, y) in terrainList:
+            if x in d:      d[x].append(y)
+            else:           d[x] = [y]
         return d
 
 ''' dont do the following because you need all the time to do other shit'''       
@@ -157,4 +138,3 @@ class ScaryTerrain(Terrain):
     def drawTerrain(self, uyeet):
         pass
 
-# so we make everything easier, I guess
