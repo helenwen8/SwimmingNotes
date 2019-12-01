@@ -16,24 +16,12 @@ pygame.midi.init()
 # and then different level state  
 gamestate = "start"
 
-WHITE = (255, 255, 255)
+WHITE, BLACK = (255, 255, 255), (0, 0, 0)
 # -----initialize screen & music ------ #
 size = width, height = 1000 , 500 
 screen = pygame.display.set_mode(size)
 '''TO DO: MAKE FULL SCREEN'''
 midiOutput = pygame.midi.Output(pygame.midi.get_default_output_id())
-'''TO DO: find ways to get around the midi error message'''
-
-# -----initialize current level (to be changed)
-currentMission = MissionTutorial(size, screen)
-currentLevel = currentMission.levels[0]
-currentExistables = currentLevel["existables"]
-currentTerrain = currentLevel["terrains"]
-currentCollectibles = currentLevel["collectibles"]
-currentMusic = currentMission.music
-player = currentMission.player
-for (status, data1) in currentMusic["init"]:
-    midiOutput.write_short(status, data1)
 
 # -----main pygame loop----- # 
 # modified from Pygame Introduction: https://www.pygame.org/docs/tut/PygameIntro.html
@@ -41,21 +29,20 @@ for (status, data1) in currentMusic["init"]:
 startTime = time.time()   
 while 1:
     # different state, inspired by https://pythonprogramming.net/pause-game-pygame/ 
-
     if gamestate == "start":
         gamestate = startscreen(screen, size)
-        
-    # if gamestate == 0:
-    #     gamestate = gamescreen(screen, size, midiOutput, 0)
-    #while gamestate == "
-
+        if gamestate == 0:
+            currentMission = MissionTutorial(size, screen)
+            player = currentMission.setupPlayer()
+            for (status, data1) in player.currentMusic["init"]:
+                midiOutput.write_short(status, data1)
 
     # actual game mode:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: 
             for index in range(0, 16):
-                for (level, (status, data1, data2)) in currentMusic[index]:
-                    midiOutput.note_off(data1)      # this works for now but..
+                for (status, data1, data2) in player.currentMusic[index]:
+                    midiOutput.note_off(data1)      # this works for now 
             midiOutput.close()
             del midiOutput              # so we safely exit the midi module
             pygame.midi.quit    
@@ -66,62 +53,66 @@ while 1:
     # we will do all the moves, and then check legalness later
     keys = pygame.key.get_pressed() 
     if keys[pygame.K_UP]:
-        player.move(0, -player.jump, currentExistables)
+        player.move(0, -player.jump, player.currentExistables)
         '''TO DO: make wall sticky - needs special attention''' 
     if keys[pygame.K_DOWN]:
-        player.move(0, player.jump, currentExistables)   
+        player.move(0, player.jump, player.currentExistables)   
     if keys[pygame.K_LEFT]:
         if (player.x > 0):
-            player.move(-10, 0, currentExistables)
+            player.move(-8, 0, player.currentExistables)
         else:
-            '''todo: make this prettier?'''
-            if currentMission.getPreviousLevel(currentLevel) != None:
-                currentLevel = currentMission.getPreviousLevel(currentLevel)
-                currentTerrain = currentLevel["terrains"]
-                currentExistables = currentLevel["existables"]
-                currentCollectibles = currentLevel["collectibles"]
+            if currentMission.getPreviousLevel(player.currentLevel) != None:
+                levelIndex = currentMission.getPreviousLevel(player.currentLevel)
+                player.setupCurrentLevel(currentMission, levelIndex)
                 player.x = width - player.radius    
     if keys[pygame.K_RIGHT]: 
-        if (player.x + 10 < width):
-            player.move(10, 0, currentExistables) 
+        if (player.x + 8 < width):
+            player.move(8, 0, player.currentExistables) 
         else:
-            if currentMission.getNextLevel(currentLevel) != None:
-                currentLevel = currentMission.getNextLevel(currentLevel)
-                currentTerrain = currentLevel["terrains"]
-                currentExistables = currentLevel["existables"]
-                currentCollectibles = currentLevel["collectibles"]
+            if currentMission.getNextLevel(player.currentLevel) != None:
+                levelIndex = currentMission.getNextLevel(player.currentLevel)
+                player.setupCurrentLevel(currentMission, levelIndex)
                 player.x = 0 + player.radius
+
     # ---check gravity---       
     '''no wall climbing so far'''
     intersectCoord = None
-    for i in currentExistables:
+    for i in player.currentExistables["normal"]:
         if player.inExistableSpace(i) != None:
             intersectCoord = player.inExistableSpace(i)
     
     # either we are completely not in the terrain
     # or some part of us are in there 
     if intersectCoord == None:      # if in air
-        player.doGravity(currentExistables)         
+        player.doGravity(player.currentExistables)         
     else:                           # if any part is in terrain    
-        player.y = player.getLowerHeight(currentLevel["terrainsDict"]) - player.radius + 1
+        player.y = player.getLowerHeight(player.currentLevel["terrainsDict"]) - player.radius + 1
         player.resetInAir()       
 
-    # ---check for legalness---
-    # somehow legalness justwork rn? we will see wtf happens
+    # ---check if we somehow die---
+    intersectCoord = None
+    for i in player.currentExistables["dangerous"]:
+        if player.inExistableSpace(i) != None:
+            index = player.death()
+            player.setupCurrentLevel(currentMission, index)
+    
 
     # ---draw all the components--- 
     screen.fill(currentMission.colorDict["background"])                
-    for terrainType in currentTerrain:
-        for terrain in currentTerrain[terrainType]:
+    for terrainType in player.currentTerrain:       # draw terrain
+        for terrain in player.currentTerrain[terrainType]:
             terrain.drawTerrain(screen)
-    for note in currentCollectibles:
+    for note in player.currentCollectibles:         # draw collectibles
         note.drawCollectibles(screen)
-    player.drawPlayer(screen)
-    # DEBUGGING ONLUY
-    for i in currentExistables:
-        pygame.draw.lines(screen, (204, 0, 102), False, i.outline())
+    player.drawPlayer(screen)                       # draw player
+    if player.currentLevel["checkpoint"] != None:   # draw checkpoint
+        player.currentLevel["checkpoint"].drawCheckpoint(screen)
+    '''DEBUGGING ONLY'''
+    # for aType in player.currentExistables:
+    #     for i in player.currentExistables[aType]:
+    #         pygame.draw.lines(screen, (204, 0, 102), False, i.outline())
     #print (currentExistables.outline())
-    # DEBUGGING ONLY
+    '''DEBUGGING ONLY'''
     pygame.display.flip()
 
     # ---play music---
@@ -129,14 +120,22 @@ while 1:
     # randomized intervals ??
     music = currentMission.playMusic(currentTime)
     if music != None:
-        for (level, (status, data1, data2)) in music:
+        print (music)
+        for [(status, data1, data2)] in music:
             midiOutput.write_short(status, data1, data2)
 
     # ---check collision for music notes---
     # putting this after the draw part so we can get all the rects properly updated
     temp = []
-    for note in currentLevel["collectibles"]:
+    for note in player.currentLevel["collectibles"]:
         if player.rect.colliderect(note.rect):  temp.append(note)
     for note in temp:
         currentMission.addMusicNotes(note)
-        currentCollectibles.remove(note)
+        player.currentCollectibles.remove(note)
+        player.uncheckedCollectibles.append(note)     # add to backup
+
+    # ---check collision for checkpoints---
+    checkpoint = player.currentLevel["checkpoint"]
+    if checkpoint != None:
+        if player.rect.colliderect(checkpoint.rect):
+            player.toCheckpoint(checkpoint)

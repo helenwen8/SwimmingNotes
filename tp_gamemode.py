@@ -31,6 +31,10 @@ def startscreen(screen, size):
         screen.blit(tutorialText, (width//2 - tutorialTextSize[0]//2, height // 5*3))
         pygame.display.update()
     
+# the ending screen when the player gets to the end
+#     
+def endingScreen(screen, size):     pass
+
 
 #def getMission(level):
     

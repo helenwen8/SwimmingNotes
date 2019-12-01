@@ -1,4 +1,7 @@
-# yay
+##########################################################
+# missions.py
+# this helps generate each level through reading the files
+# ########################################################
 
 import sys, copy, random, time, os
 import pygame
@@ -9,16 +12,18 @@ BLACK = (0, 0, 0)
 
 class Missions(object):
     # terrains grouped by types
-    terrainDict = {"normal": set(), "sticky": set(), "bad": set()}
+    terrainDict = {"normal": set(), "sticky": set(), "dangerous": set()}
     # music, grouped by timing
     musicDict = {i: [] for i in range(0, 16)} 
     # overall level information
     # "terrain" = a list of Terrain objects, defined by ME
     # "existables" = a dictionary with key of x'es, values of all borders
     # "collectibles" = list of (x, y) of music notes as well as their midi data
-    levelDict = {"terrains": None, "existables": set(), "terrainsDict": None,
-                 "collectRect": [],  "collectibles": set()}
-    colorDict = {"terrains": None, "background": None, "collectibles": None}
+    levelDict = {"terrains": None, "existables": None, "terrainsDict": None,
+                 "collectRect": [],  "collectibles": set(), "checkpoint": None}
+    colorDict = {"terrains": None, "background": None, "collectibles": None,
+                 "uncheckedpoint": None, "checkedpoint": None}
+
 
     def __init__ (self, bpm, size):
         self.bpm = bpm
@@ -39,7 +44,8 @@ class Missions(object):
         # set up the keywords
         keywords = {"height": 500, "width": 1000, "jump": 22}
         toRet = []
-        for line in lines:      toRet.append(eval(line, keywords))
+        for line in lines:      
+            toRet.append(eval(line, keywords))
         return toRet
 
     @staticmethod
@@ -57,6 +63,22 @@ class Missions(object):
         alllines = Missions.getLines(pathname)
         levelInfo = copy.deepcopy(Missions.levelDict)
         levelInfo["terrains"] = copy.deepcopy(Missions.terrainDict)
+        levelInfo["existables"] = copy.deepcopy(Missions.terrainDict)
+
+        # set up dangerous terrain:
+        dangerousStart, dangerousEnd = Missions.getLineIndex("dangerous", alllines)
+        terrains = Missions.extractInfoFromSection(alllines[dangerousStart + 1:dangerousEnd])
+        for points in terrains:
+            levelInfo["terrains"]["dangerous"].add(DangerousTerrain(points))
+        
+        # set up dangerous terrain mask:
+        for terrain in levelInfo["terrains"]["dangerous"]:
+            tempDisplay.fill(WHITE)
+            terrain.drawTerrain(tempDisplay)
+            temp = pygame.display.get_surface()
+            
+            temp.set_colorkey(WHITE)
+            levelInfo["existables"]["dangerous"].add(pygame.mask.from_surface(temp))
 
         # set up terrain: 
         terrainStart, terrainEnd = Missions.getLineIndex("terrains", alllines)
@@ -69,22 +91,29 @@ class Missions(object):
             tempDisplay.fill(WHITE)
             terrain.drawTerrain(tempDisplay)
             temp = pygame.display.get_surface()
-            pygame.image.save(tempDisplay, "lol.png")
             
             temp.set_colorkey(WHITE)
-            levelInfo["existables"].add(pygame.mask.from_surface(temp))
+            levelInfo["existables"]["normal"].add(pygame.mask.from_surface(temp))
 
         # set up terrainDict for checking above/below
         existableList = []
-        for existObject in levelInfo["existables"]:
-            existableList.append(existObject.outline())
+        for terrainType in levelInfo["existables"]:
+            for existObject in levelInfo["existables"][terrainType]:
+                existableList.append(existObject.outline())
         levelInfo["terrainsDict"] = Terrain.mergeTerrainList(existableList)
 
         # set up collectibles
         collectStart, collectEnd = Missions.getLineIndex("collectibles", alllines)
         collectibles = Missions.extractInfoFromSection(alllines[collectStart + 1:collectEnd])
         for points in collectibles:
-            levelInfo["collectibles"].add(Collectibles(points[0], points[1], points[2], colors["collectibles"]))
+            levelInfo["collectibles"].add(Collectibles(points[0], points[1], colors["collectibles"]))
+
+        # set up checkpoint - one per level max
+        checkStart, checkEnd = Missions.getLineIndex("checkpoint", alllines)
+        checkpoint = Missions.extractInfoFromSection(alllines[checkStart + 1:checkEnd])
+        #print (checkpoint)
+        if checkpoint != []:
+            levelInfo["checkpoint"] = Checkpoints(checkpoint[0][0], checkpoint[0][1], colors["uncheckedpoint"], colors["checkedpoint"])
 
         return levelInfo
 
@@ -97,9 +126,9 @@ class Missions(object):
         mask = pygame.mask.from_surface(temp)
         return mask
 
+    # set up color palette
     @staticmethod
     def initiateLevel(pathname):
-        # set up color palette
         alllines = Missions.getLines(pathname)
         colorStart, colorEnd = Missions.getLineIndex("color", alllines)
         return Missions.extractInfoFromSection(alllines[colorStart + 1:colorEnd])
@@ -136,12 +165,12 @@ class Missions(object):
     def getNextLevel(self, currentLevel): 
         index = self.levels.index(currentLevel)
         if index < len(self.levels) - 1:
-            return self.levels[index + 1]
+            return index + 1
         else: return None
     def getPreviousLevel(self, currentLevel):
         index = self.levels.index(currentLevel)
         if index > 0:
-            return self.levels[index - 1]
+            return index - 1
         else: return None
 
     @staticmethod
@@ -152,11 +181,10 @@ class Missions(object):
         return msInMinute / bpm * eighth
 
     def playMusic(self, currentTime):
-        errorMargin = self.timeInterval * 0.2
         if currentTime % self.timeInterval <= 50:
             index = int((currentTime / self.timeInterval) % 8)
             return self.music[index]
 
     def addMusicNotes(self, note):
         for (time, statusByte) in note.status:
-            self.music[time].append((note.duration, statusByte))
+            self.music[time].append((statusByte))

@@ -18,7 +18,7 @@ from tp_missions import *
 class MissionTutorial(Missions):
     currentCheckpoint = []
     def __init__(self, size, display):
-        self.bpm = 100
+        self.bpm = 120
         self.timeInterval = Missions.getTimeInterval(self.bpm)
         self.width, self.height = size
         self.display = display
@@ -33,21 +33,21 @@ class MissionTutorial(Missions):
         self.music["init"] = set()
         for (status, data1) in Missions.initiateMusic("level_info/m0/init.txt"):
             self.music["init"].add((status, data1))
-
         # set up color templates
         self.colorDict = Missions.initiateLevel("level_info/m0/init.txt")[0]
+
+    def setupPlayer(self):
         # set up player and player.mask
         self.player = Player((self.width // 5, self.height // 3 * 2),
-                                    self.colorDict["player"])
+                                    self.colorDict["player"], self)
         self.player.mask = Missions.initiatePlayer(self.player, self.display)
-
+        return self.player
 
 # -----make hardcoded levels----- #
 '''change this'''
 class MissionOne(Missions):
     player = None
     music = None
-    alreadyCollected = []
     def __init__(self, size):
         self.bpm = 160
         self.timeInterval = Missions.getTimeInterval(self.bpm)
@@ -65,16 +65,4 @@ class MissionOne(Missions):
         for (status, data1) in Missions.initiateMusic("level_info/mission1_music.txt"):
             self.music["init"].add((status, data1))
 
-    def levelOne(self):
-        # set up player because this is level one
-        MissionOne.player = Player((self.width // 5, self.height // 3 * 2),
-                                    (204, 255, 255))
-        # return a level data dictionary
-        self.levelOne = Missions.initiateLevel("level_info/mission1_level1.txt")
-
-    def levelTwo(self):
-        self.levelTwo = Missions.initiateLevel("level_info/mission1_level2.txt")
-    
-    def levelThree(self):
-        self.levelThree = Missions.initiateLevel("level_info/mission1_level3.txt")
 
