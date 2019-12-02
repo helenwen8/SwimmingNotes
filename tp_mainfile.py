@@ -15,8 +15,8 @@ pygame.midi.init()
 # win/lose - result ending screen
 # and then different level state  
 gamestate = "start"
-
 WHITE, BLACK = (255, 255, 255), (0, 0, 0)
+
 # -----initialize screen & music ------ #
 size = width, height = 1000 , 500 
 screen = pygame.display.set_mode(size)
@@ -25,7 +25,6 @@ midiOutput = pygame.midi.Output(pygame.midi.get_default_output_id())
 
 # -----main pygame loop----- # 
 # modified from Pygame Introduction: https://www.pygame.org/docs/tut/PygameIntro.html
-
 startTime = time.time()   
 while 1:
     # different state, inspired by https://pythonprogramming.net/pause-game-pygame/ 
@@ -95,7 +94,6 @@ while 1:
         if player.inExistableSpace(i) != None:
             index = player.death()
             player.setupCurrentLevel(currentMission, index)
-    
 
     # ---draw all the components--- 
     screen.fill(currentMission.colorDict["background"])                
@@ -110,7 +108,7 @@ while 1:
     '''DEBUGGING ONLY'''
     # for aType in player.currentExistables:
     #     for i in player.currentExistables[aType]:
-    #         pygame.draw.lines(screen, (204, 0, 102), False, i.outline())
+    #         pygame.draw.lines(screen, (204, 0, 102), False, i.outline(), 10)
     #print (currentExistables.outline())
     '''DEBUGGING ONLY'''
     pygame.display.flip()
@@ -120,8 +118,7 @@ while 1:
     # randomized intervals ??
     music = currentMission.playMusic(currentTime)
     if music != None:
-        print (music)
-        for [(status, data1, data2)] in music:
+        for (status, data1, data2) in music:
             midiOutput.write_short(status, data1, data2)
 
     # ---check collision for music notes---
@@ -132,7 +129,8 @@ while 1:
     for note in temp:
         currentMission.addMusicNotes(note)
         player.currentCollectibles.remove(note)
-        player.uncheckedCollectibles.append(note)     # add to backup
+        currentIndex = player.getLevelIndex(currentMission)
+        player.uncheckedCollectibles.append((currentIndex, note))     # add to backup
 
     # ---check collision for checkpoints---
     checkpoint = player.currentLevel["checkpoint"]

@@ -24,7 +24,6 @@ class Missions(object):
     colorDict = {"terrains": None, "background": None, "collectibles": None,
                  "uncheckedpoint": None, "checkedpoint": None}
 
-
     def __init__ (self, bpm, size):
         self.bpm = bpm
         self.width, self.height = size
@@ -187,4 +186,4 @@ class Missions(object):
 
     def addMusicNotes(self, note):
         for (time, statusByte) in note.status:
-            self.music[time].append((statusByte))
+            self.music[time].append(statusByte)
