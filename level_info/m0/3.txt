@@ -5,6 +5,9 @@ terrains
 [(width,height),(width,height//2),(width//8*7,height//2),(width//8*7,height)]
 ENDterrains
 
+sticky
+ENDsticky
+
 dangerous
 [(0,height//6*5.8),(width,height//6*5),(width,height),(0,height)]
 ENDdangerous

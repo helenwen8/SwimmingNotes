@@ -18,7 +18,6 @@ class Player(object):
         self.x, self.y = center[0], center[1]
         # ---for gravity & wall climbing--- 
         self.isInAir = True
-        self.isClimbing = False
         self.count = 0
         self.mask = None
         # ---for level specific things---
@@ -28,6 +27,9 @@ class Player(object):
         self.checkedCollectibles = copy.deepcopy(self.currentMusic) # before the checkpoint
         self.lastCheckpoint = (center, 0)       # ((x, y), level index)
         self.currentMission = currentMission
+        # set up shit
+        sprite = pygame.image.load("death_sprite_maybe.png")
+        self.deathSprite = pygame.transform.scale(sprite, (480, 360))
 
     def setupCurrentLevel(self, currentMission, level):
         self.currentLevel = currentMission.levels[level]
@@ -36,6 +38,9 @@ class Player(object):
         self.currentCollectibles = self.currentLevel["collectibles"]
         self.currentMusic = copy.deepcopy(currentMission.music)
         
+    def setupDeathAnimation(self):
+        pass
+
     def drawPlayer(self, display):
         # this should update rect as well as draw simultaneously
         self.rect = pygame.draw.circle(display, self.color, 
@@ -47,25 +52,31 @@ class Player(object):
 
     # referenced from https://sivasantosh.wordpress.com/2012/07/23/using-masks-pygame/
     # for how to code mask.overlap and offsets
-    def inExistableSpace(self, mask):
-        return mask.overlap(self.mask, (self.x - self.radius, self.y - self.radius)) 
+    def inExistableSpace(self, mask, xOffset = None, yOffset = None):
+        if xOffset == None:
+            xOffset = self.x - self.radius
+        if yOffset == None:
+            yOffset = self.y - self.radius
+        return mask.overlap(self.mask, (xOffset, yOffset)) 
 
-    # ---moving physics--- 
-    def move(self, dx, dy, existableMask):
-        self.x += dx
-        self.y += dy
-        for lst in existableMask["normal"]:
-            while (self.inExistableSpace(lst) != None and 
-                   ((abs(self.inExistableSpace(lst)[0] - self.x) < self.radius*0.8) and
-                   (abs(self.inExistableSpace(lst)[1] - self.y) < self.radius*0.8))):
-                crash = self.inExistableSpace(lst)
-                if crash[0] > self.x: self.x -=1
-                if crash[0] < self.x: self.x += 1
-                if crash[1] > self.y: self.y -= 1
-                if crash[1] < self.y: self.y += 1
+    
  
-    def death(self):        # morbid much?
-        time.sleep(1)       # ya idk
+    # ---death and checkpoints and respawn---
+    # image crop tutorial https://stackoverflow.com/questions/6239769/how-can-i-crop-an-image-with-pygame
+    def death(self, screen):        # morbid much?
+        #surface = pygame.Surface(int(self.radius * 2), int(self.radius * 2))
+        deathTopLeft = (self.x - self.radius, self.y - self.radius)
+        #spriteWidth, spriteHeight = 1985 / 8, 1312 / 6
+        for x in range(8):
+            for y in range(6):
+                #xOffset, yOffset = x * spriteWidth, y * spriteHeight
+                screen.blit(self.deathSprite, deathTopLeft, (60 * x, 60 * y, 60, 60))
+                pygame.display.flip()
+                print ("yay")
+                time.sleep(0.01)
+
+
+        #time.sleep(1)       # ya idk
         self.x, self.y = self.lastCheckpoint[0] # go back to last place
         self.currentMusic = self.currentMission.music = copy.deepcopy(self.checkedCollectibles)  # go back to old music
         for (level, notes) in self.uncheckedCollectibles:
@@ -73,13 +84,37 @@ class Player(object):
         self.uncheckedCollectibles = []
         return self.lastCheckpoint[1]   # the level we need to go back to
 
+
     def toCheckpoint(self, checkpoint):
         if not checkpoint.isChecked:
             checkpoint.isChecked = True
             self.uncheckedCollectibles = []
             self.checkedCollectibles = copy.deepcopy(self.currentMusic)
-            self.lastCheckpoint = (checkpoint.center, checkpoint.level)  
+            self.lastCheckpoint = (checkpoint.center, checkpoint.level) 
 
+    # ---moving physics--- 
+    '''this is as buggy as wallclimbing can go'''
+    '''but lets just use this for now lmfao'''
+    def move(self, dx, dy, existableMask):
+        self.x += dx
+        self.y += dy
+        for lst in existableMask["normal"]:
+            while (self.inExistableSpace(lst) != None and
+                (abs(self.inExistableSpace(lst)[0] - self.x) < self.radius*0.8) and
+                (abs(self.inExistableSpace(lst)[1] - self.y) < self.radius*0.8)):
+                crash = self.inExistableSpace(lst)
+                if crash[0] > self.x: self.x -= 1
+                if crash[0] < self.x: self.x += 1
+                if crash[1] > self.y: self.y -= 1
+                if crash[1] < self.y: self.y += 1
+                # if abs(crash[0] - self.x) < self.radius * 0.8:
+                #     if crash[0] > self.x: self.x -= 1
+                #     if crash[0] < self.x: self.x += 1
+                # if abs(crash[1] - self.y) < self.radius * 0.8:
+                #     if crash[1] > self.y: self.y -= 1
+                #     if crash[1] < self.y: self.y += 1
+
+                
     def resetInAir(self):
         self.isInAir = False
         self.count = 0
@@ -91,11 +126,29 @@ class Player(object):
     # make sure we are at the ground, not another plane
     # so far this works pretty nicely
     def getLowerHeight(self, existables): 
+        
+
+
+
+
+        # not only lowerst but also existable!!
         if self.x < 0: self.x = 0
         yList = existables[self.x]
         nearestY = yList[0]
+        count = 0
         for y in reversed(yList):
-            if abs(self.y - y) < abs(self.y - nearestY) and y > self.y:
+            #print (yList)
+            count += 1
+
+            for i in self.currentExistables["normal"]:
+                if self.inExistableSpace(i, None, y) != None:
+                    count -= 1
+            if y > self.y and count % 2 == 0:
+            # if (abs(self.y - y) < abs(self.y - nearestY) and 
+            #     y > self.y and count % 2 == 0):
+                # for i in self.currentExistables["normal"]:
+                #     if self.inExistableSpace(i) == None:
+            # if abs(self.y - y) < abs(self.y - nearestY) and y > self.y:
             #if (self.y - y) < (self.y - nearestY) and y > self.y:
             #if y > self.y and y > nearestY:
                 nearestY = y
@@ -146,17 +199,18 @@ class Terrain(object):
         d = {}
         for lst in terrainList:
             for (x, y) in lst:
-                if y == 0:        pass  # ignore top line 
+                if y == 0:        continue      # ignore top line 
                 elif x in d:      d[x].append(y)
                 else:             d[x] = [y]
+        for key in d:
+            d[key] = sorted(d[key])
         return d
 
 ''' dont do the following because you need all the time to do other shit'''       
 # so this is the type of terrain where you can climb wall on
 # this is the one that really really really need attention on the hitbox thing
 class StickyTerrain(Terrain):
-    def __init__(self, pointsList, type):
-        pass
+    pass
 
 # so this is bad terrain
 # if you touch this you die lel

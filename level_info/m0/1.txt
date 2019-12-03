@@ -4,6 +4,9 @@ ENDdangerous
 checkpoint
 ENDcheckpoint
 
+sticky
+ENDsticky
+
 terrains
 [(0,height),(width,height),(width,height//5*4),(0,height//5*4)]
 [(0,0),(0,height//4),(width,height//4),(width,0)]

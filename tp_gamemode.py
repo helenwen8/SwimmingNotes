@@ -12,139 +12,108 @@ def startscreen(screen, size):
             if event.type == pygame.QUIT: 
                 sys.exit()  
             elif event.type == pygame.KEYDOWN:   
-                if event.key == pygame.K_0: 
-                    return 0
+                if event.key == pygame.K_RETURN: 
+                    return nameScreen(screen, size)
 
         welcomeTextFont = pygame.font.SysFont("monospace", 50)
         welcomeText = welcomeTextFont.render("welcome to this shitty game!", 1, (214, 198, 163))
         welcomeTextSize = welcomeTextFont.size("welcome to this shitty game!")
 
         tutorialTextFont = pygame.font.SysFont("monospace", 30)
-        tutorialText = tutorialTextFont.render("press 0 to start this shitty game", 1, (214, 198, 163))
-        tutorialTextSize = tutorialTextFont.size("press 0 to start this shitty game")
+        tutorialText = tutorialTextFont.render("press ENTER/RETURN to start this shitty game", 1, (214, 198, 163))
+        tutorialTextSize = tutorialTextFont.size("press ENTER/RETURN to start this shitty game")
 
 
         # for fonts with color https://stackoverflow.com/questions/10077644/python-display-text-with-font-color
         screen.fill((172, 156, 156))
-        #print ("wtf")
         screen.blit(welcomeText, (width//2 - welcomeTextSize[0]//2, height // 5))
         screen.blit(tutorialText, (width//2 - tutorialTextSize[0]//2, height // 5*3))
         pygame.display.update()
-    
+
+def nameScreen(screen, size):
+    width, height = size
+    userInput = ""
+    while 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: 
+                sys.exit()  
+            elif event.type == pygame.KEYDOWN:   
+                if event.key == pygame.K_RETURN: 
+                    return levelSelectScreen(screen, size, userInput)
+                    #return 0
+                elif event.key == pygame.K_BACKSPACE:   # 
+                    if len(userInput) > 0: 
+                        userInput = userInput[:-1]
+                else:
+                    userInput += chr(event.key)
+
+        nameTextFont = pygame.font.SysFont("monospace", 50)
+        nameText = nameTextFont.render("Please enter your name: ", 1, (214, 198, 163))
+        nameTextSize = nameTextFont.size("Please enter your name: ")
+
+        enterTextFont = pygame.font.SysFont("monospace", 50)
+        enterText = enterTextFont.render("press ENTER/RETURN when done", 1, (214, 198, 163))
+        enterTextSize = enterTextFont.size("press ENTER/RETURN when done")
+
+        inputTextFont = pygame.font.SysFont("monospace", 50)
+        inputText = inputTextFont.render(userInput, 1, (214, 198, 163))
+        inputTextSize = inputTextFont.size(userInput)
+
+        screen.fill((172, 156, 156))
+        screen.blit(nameText, (width//2 - nameTextSize[0]//2, height // 5))
+        screen.blit(inputText, (width//2 - inputTextSize[0]//2, height // 5 * 3))
+        screen.blit(enterText, (width//2 - enterTextSize[0]//2, height // 5 * 4))
+        pygame.display.update()
+
+
+def levelSelectScreen(screen, size, userInput):  
+    width, height = size
+    while 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: 
+                sys.exit()  
+            elif event.type == pygame.KEYDOWN:   
+                if event.key == pygame.K_RETURN: 
+                    return 0
+  
+        welcomeTextFont = pygame.font.SysFont("monospace", 50)
+        welcomeText = welcomeTextFont.render(f"Welcome, {userInput}", 1, (214, 198, 163))
+        welcomeTextSize = welcomeTextFont.size(f"Welcome, {userInput}")
+
+        enterTextFont = pygame.font.SysFont("monospace", 50)
+        enterText = enterTextFont.render("press ENTER/RETURN to go to game", 1, (214, 198, 163))
+        enterTextSize = enterTextFont.size("press ENTER/RETURN to go to game")
+
+        screen.fill((172, 156, 156))
+        screen.blit(welcomeText, (width//2 - welcomeTextSize[0]//2, height // 5))
+        screen.blit(enterText, (width//2 - enterTextSize[0]//2, height // 5 * 3))
+        pygame.display.update()
+
 # the ending screen when the player gets to the end
 #     
 def endingScreen(screen, size):     pass
 
+# for when player wants to pause the
+def pauseScreen(screen, size):  
+    width, height = size
+    while 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: 
+                sys.exit()  
+            elif event.type == pygame.KEYDOWN:   
+                if event.key == pygame.K_RETURN: 
+                    return 0 
 
-#def getMission(level):
-    
-# def gamescreen(screen, size, midiOutput, level):
-#     currentMission = MissionTutorial(size, screen)
-#     currentLevel = currentMission.levelOne
-#     currentExistables = currentLevel["existables"]
-#     currentTerrain = currentLevel["terrains"]
-#     currentCollectibles = currentLevel["collectibles"]
-#     currentMusic = currentMission.music
-#     player = currentMission.player
-#     for (status, data1) in currentMusic["init"]:
-#         midiOutput.write_short(status, data1)
-#         # actual game mode:
+        pauseFont = pygame.font.SysFont("monospace", 50)
+        pauseText = welcomeTextFont.render("paused or some shit", 1, (214, 198, 163))
+        pauseTextSize = welcomeTextFont.size("paused or some shit")
 
-#     while 1: 
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT: 
-#                 for index in range(0, 16):
-#                     for (level, (status, data1, data2)) in currentMusic[index]:
-#                         midiOutput.note_off(data1)      # this works for now but..
-#                 midiOutput.close()
-#                 del midiOutput              # so we safely exit the midi module
-#                 pygame.midi.quit    
-#                 sys.exit()                  
-
-#         # checking pressed keys, inspired from 
-#         # https://stackoverflow.com/questions/9961563/how-can-i-make-a-sprite-move-when-key-is-held-down 
-#         # we will do all the moves, and then check legalness later
-#         keys = pygame.key.get_pressed() 
-#         if keys[pygame.K_UP]:
-#             player.move(0, -player.jump, currentExistables)
-#             '''TO DO: make wall sticky - needs special attention''' 
-#         if keys[pygame.K_DOWN]:
-#             player.move(0, player.jump, currentExistables)   
-#         if keys[pygame.K_LEFT]:
-#             if (player.x > 0):
-#                 player.move(-10, 0, currentExistables)
-#             else:
-#                 '''todo: make this prettier?'''
-#                 if currentMission.getPreviousLevel(currentLevel) != None:
-#                     currentLevel = currentMission.getPreviousLevel(currentLevel)
-#                     currentTerrain = currentLevel["terrains"]
-#                     currentExistables = currentLevel["existables"]
-#                     currentCollectibles = currentLevel["collectibles"]
-#                     player.x = width - player.radius    
-#         if keys[pygame.K_RIGHT]: 
-#             if (player.x + 10 < width):
-#                 player.move(10, 0, currentExistables) 
-#             else:
-#                 if currentMission.getNextLevel(currentLevel) != None:
-#                     currentLevel = currentMission.getNextLevel(currentLevel)
-#                     currentTerrain = currentLevel["terrains"]
-#                     currentExistables = currentLevel["existables"]
-#                     currentCollectibles = currentLevel["collectibles"]
-#                     player.x = 0 + player.radius
-#         # ---check gravity---       
-#         '''no wall climbing so far'''
-#         intersectCoord = None
-#         for i in currentExistables:
-#             if player.inExistableSpace(i) != None:
-#                 intersectCoord = player.inExistableSpace(i)
+        resumeFont = pygame.font.SysFont("press ENTER/RETURN to resume", 50)
+        resumeText = welcomeTextFont.render("press ENTER/RETURN to resume", 1, (214, 198, 163))
+        resumeTextSize = welcomeTextFont.size("press ENTER/RETURN to resume")
         
-#         # either we are completely not in the terrain
-#         # or some part of us are in there 
-#         if intersectCoord == None:      # if in air
-#             player.doGravity(currentExistables)         
-#         else:                           # if any part is in terrain 
-#             # -1 so it doesn't keep bouncing        
-#             player.y = player.getLowerHeight(currentLevel["terrainsDict"]) - player.radius + 1
-#             player.resetInAir()       
-
-#         # ---check for legalness---
-
-
-
-#         # ---draw all the components--- 
-#         screen.fill(currentMission.colorDict["background"])                
-#         for terrainType in currentTerrain:
-#             for terrain in currentTerrain[terrainType]:
-#                 terrain.drawTerrain(screen)
-#         for note in currentCollectibles:
-#             note.drawCollectibles(screen)
-#         player.drawPlayer(screen)
-
-#         # DEBUGGING ONLUY
-#         for i in currentExistables:
-#             pygame.draw.lines(screen, (204, 0, 102), False, i.outline())
-#         #print (currentExistables.outline())
-#         # DEBUGGING ONLY
-#         pygame.display.flip()
-
-#         # ---play music---
-#         currentTime = (time.time() - startTime) * 1000
-#         # randomized intervals ??
-#         music = currentMission.playMusic(currentTime)
-#         if music != None:
-#             for (level, (status, data1, data2)) in music:
-#                 midiOutput.write_short(status, data1, data2)
-
-
-            
-
-#         # ---check collision---
-#         # putting this after the draw part so we can get all the rects properly updated
-#         #pygame.draw.lines(screen, (200, 150, 150), 1, currentExistables.outline())
-#         temp = []
-#         for note in currentLevel["collectibles"]:
-#             if player.rect.colliderect(note.rect):  temp.append(note)
-#         for note in temp:
-#             currentMission.addMusicNotes(note)
-#             currentCollectibles.remove(note)
+        screen.fill((172, 156, 156))
+        screen.blit(pauseFont, (width//2 - pauseTextSize[0]//2, height // 5))
+        screen.blit(resumeFont, (width//2 - resumeTextSize[0]//2, height // 5*3))
+        pygame.display.update()
 

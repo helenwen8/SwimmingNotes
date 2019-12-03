@@ -7,6 +7,9 @@ dangerous
 [(0,height//6*5.8),(width,height//6*5),(width,height),(0,height)]
 ENDdangerous
 
+sticky
+ENDsticky
+
 checkpoint
 ENDcheckpoint
 

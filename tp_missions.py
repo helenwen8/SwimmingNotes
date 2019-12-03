@@ -19,10 +19,10 @@ class Missions(object):
     # "terrain" = a list of Terrain objects, defined by ME
     # "existables" = a dictionary with key of x'es, values of all borders
     # "collectibles" = list of (x, y) of music notes as well as their midi data
-    levelDict = {"terrains": None, "existables": None, "terrainsDict": None,
+    levelDict = {"terrains": None, "existables": None, "terrainsDict": None, "stickyDict": None,
                  "collectRect": [],  "collectibles": set(), "checkpoint": None}
     colorDict = {"terrains": None, "background": None, "collectibles": None,
-                 "uncheckedpoint": None, "checkedpoint": None}
+                 "uncheckedpoint": None, "checkedpoint": None, "sticky": None, "outline": None}
 
     def __init__ (self, bpm, size):
         self.bpm = bpm
@@ -94,6 +94,21 @@ class Missions(object):
             temp.set_colorkey(WHITE)
             levelInfo["existables"]["normal"].add(pygame.mask.from_surface(temp))
 
+        # set up things you can climb on!!!!!
+        stickyStart, stickyEnd = Missions.getLineIndex("sticky", alllines)
+        stickyTerrains = Missions.extractInfoFromSection(alllines[stickyStart + 1:stickyEnd])
+        for points in stickyTerrains:
+            levelInfo["terrains"]["sticky"].add(StickyTerrain(points, colors["sticky"]))
+
+        # set up sticky masks
+        for terrain in levelInfo["terrains"]["sticky"]:
+            tempDisplay.fill(WHITE)
+            terrain.drawTerrain(tempDisplay)
+            temp = pygame.display.get_surface()
+            
+            temp.set_colorkey(WHITE)
+            levelInfo["existables"]["sticky"].add(pygame.mask.from_surface(temp))
+
         # set up terrainDict for checking above/below
         existableList = []
         for terrainType in levelInfo["existables"]:
@@ -110,7 +125,6 @@ class Missions(object):
         # set up checkpoint - one per level max
         checkStart, checkEnd = Missions.getLineIndex("checkpoint", alllines)
         checkpoint = Missions.extractInfoFromSection(alllines[checkStart + 1:checkEnd])
-        #print (checkpoint)
         if checkpoint != []:
             levelInfo["checkpoint"] = Checkpoints(checkpoint[0][0], checkpoint[0][1], colors["uncheckedpoint"], colors["checkedpoint"])
 
