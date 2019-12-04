@@ -5,7 +5,6 @@ from tp_levelMaker import *
 pygame.init()
 
 
-
 # the screen player sees at first
 def startscreen(screen, size):
     width, height = size

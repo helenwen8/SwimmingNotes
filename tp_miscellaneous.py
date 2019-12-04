@@ -128,14 +128,11 @@ class Player(object):
         yList = existables[self.x]
         nearestY = yList[0]
         count = 0
+        print (yList)
         for y in reversed(yList):
             #print (yList)
             count += 1
-
-            for i in self.currentExistables["normal"]:
-                if self.inExistableSpace(i, None, y) != None:
-                    count -= 1
-            if y > self.y and count % 2 != 0:
+            if y > self.y and count % 2 == 0:
             # if (abs(self.y - y) < abs(self.y - nearestY) and 
             #     y > self.y and count % 2 == 0):
                 # for i in self.currentExistables["normal"]:

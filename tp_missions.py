@@ -94,9 +94,9 @@ class Missions(object):
 
         #set up terrainDict for checking above/below
         existableList = []
-        for terrainType in levelInfo["existables"]:
-            for existObject in levelInfo["existables"][terrainType]:
-                existableList.extend(existObject.outline())
+        #for terrainType in levelInfo["existables"]:
+        for existObject in levelInfo["existables"]["normal"]:
+            existableList.extend(existObject.outline())
         levelInfo["terrainsDict"] = Terrain.mergeTerrainList(existableList)
 
 
