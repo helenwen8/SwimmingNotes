@@ -12,25 +12,21 @@ BLACK = (0, 0, 0)
 
 class Missions(object):
     # terrains grouped by types
-    terrainDict = {"normal": set(), "sticky": set(), "dangerous": set()}
+    terrainDict = {"normal": set(), "dangerous": set()}
     # music, grouped by timing
     musicDict = {i: [] for i in range(0, 16)} 
     # overall level information
     # "terrain" = a list of Terrain objects, defined by ME
     # "existables" = a dictionary with key of x'es, values of all borders
     # "collectibles" = list of (x, y) of music notes as well as their midi data
-    levelDict = {"terrains": None, "existables": None, "terrainsDict": None, "stickyDict": None,
-                 "collectRect": [],  "collectibles": set(), "checkpoint": None}
-    colorDict = {"terrains": None, "background": None, "collectibles": None,
-                 "uncheckedpoint": None, "checkedpoint": None, "sticky": None, "outline": None}
+    levelDict = {"terrains": None, "existables": None, "terrainsDict": None, 
+                 "collectibles": set(), "checkpoint": None, "endpoint": None}
+    colorDict = {"terrains": None, "background": None, "collectibles": None, "endpoint": None,
+                 "uncheckedpoint": None, "checkedpoint": None, "outline": None}
 
     def __init__ (self, bpm, size):
         self.bpm = bpm
         self.width, self.height = size
-
-    # the following staticmethods are used so we can get info from text files
-    # I totally forgot eval is a thing, thanks 112 linter
-    # but now life is much easier
 
     # referenced from 112 website on basic IO 
     @staticmethod
@@ -38,6 +34,8 @@ class Missions(object):
         with open(pathname, "rt") as myFile:
             return myFile.readlines()
 
+    # the following used so we can get info from text files
+    # I totally forgot eval is a thing, thanks 112 linter
     @staticmethod
     def extractInfoFromSection(lines):
         # set up the keywords
@@ -94,27 +92,13 @@ class Missions(object):
             temp.set_colorkey(WHITE)
             levelInfo["existables"]["normal"].add(pygame.mask.from_surface(temp))
 
-        # set up things you can climb on!!!!!
-        stickyStart, stickyEnd = Missions.getLineIndex("sticky", alllines)
-        stickyTerrains = Missions.extractInfoFromSection(alllines[stickyStart + 1:stickyEnd])
-        for points in stickyTerrains:
-            levelInfo["terrains"]["sticky"].add(StickyTerrain(points, colors["sticky"]))
-
-        # set up sticky masks
-        for terrain in levelInfo["terrains"]["sticky"]:
-            tempDisplay.fill(WHITE)
-            terrain.drawTerrain(tempDisplay)
-            temp = pygame.display.get_surface()
-            
-            temp.set_colorkey(WHITE)
-            levelInfo["existables"]["sticky"].add(pygame.mask.from_surface(temp))
-
-        # set up terrainDict for checking above/below
+        #set up terrainDict for checking above/below
         existableList = []
         for terrainType in levelInfo["existables"]:
             for existObject in levelInfo["existables"][terrainType]:
-                existableList.append(existObject.outline())
+                existableList.extend(existObject.outline())
         levelInfo["terrainsDict"] = Terrain.mergeTerrainList(existableList)
+
 
         # set up collectibles
         collectStart, collectEnd = Missions.getLineIndex("collectibles", alllines)
@@ -128,16 +112,31 @@ class Missions(object):
         if checkpoint != []:
             levelInfo["checkpoint"] = Checkpoints(checkpoint[0][0], checkpoint[0][1], colors["uncheckedpoint"], colors["checkedpoint"])
 
+        # set up end goal
+        # if Missions.getLineIndex("endpoint", alllines) != -1:
+        #     endStart, endEnd = Missions.getLineIndex("endpoint", alllines)
+        #     endpoint = Missions.extractInfoFromSection(alllines[endStart + 1:endEnd])
+        #     levelInfo["endpoint"] = Endpoint(endpoint[0], colors["endpoint"])
+
         return levelInfo
 
     @staticmethod
     def initiatePlayer(player, tempDisplay):
         tempDisplay.fill(WHITE)
-        player.rect = pygame.draw.circle(tempDisplay, BLACK, (30, 30), 30)
+        player.rect = pygame.draw.circle(tempDisplay, BLACK, (30, 30), 27)
         temp = pygame.display.get_surface()
         temp.set_colorkey(WHITE)
-        mask = pygame.mask.from_surface(temp)
-        return mask
+        mask1 = pygame.mask.from_surface(temp)
+        # we are going to try something
+        tempDisplay.fill(WHITE)
+        pygame.draw.line(tempDisplay, BLACK, (30,1),(30,30), 5)
+        pygame.draw.line(tempDisplay, BLACK, (30,60),(30,30), 5)
+        pygame.draw.line(tempDisplay, BLACK, (1,30),(30,30), 5)
+        pygame.draw.line(tempDisplay, BLACK, (30,60),(30,30), 5)
+        temp = pygame.display.get_surface()
+        temp.set_colorkey(WHITE)
+        mask2 = pygame.mask.from_surface(temp)
+        return mask1, mask2
 
     # set up color palette
     @staticmethod
@@ -201,3 +200,5 @@ class Missions(object):
     def addMusicNotes(self, note):
         for (time, statusByte) in note.status:
             self.music[time].append(statusByte)
+
+    def drawMusicDecorations(self, currentTime, screen):    pass

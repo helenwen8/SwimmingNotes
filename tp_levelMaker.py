@@ -40,7 +40,7 @@ class MissionTutorial(Missions):
         # set up player and player.mask
         self.player = Player((self.width // 5, self.height // 3 * 2),
                                     self.colorDict["player"], self)
-        self.player.mask = Missions.initiatePlayer(self.player, self.display)
+        self.player.mask, self.player.axis = Missions.initiatePlayer(self.player, self.display)
         return self.player
 
 # -----make hardcoded levels----- #
