@@ -17,6 +17,10 @@ pygame.midi.init()
 gamestate = "start"
 name = None
 WHITE, BLACK = (255, 255, 255), (0, 0, 0)
+# some fun notes
+DEATH_NOTES = [(0x90,72,100),(0x90,74,100)]
+CHECKPOINT_NOTES = [(0x90,60,100),(0x90,72,100),(0x90,64,100),(0x90,76,100)]
+WIN_NOTES = (60, 62, 64, 65, 67, 69, 71, 72)    #  it is a major scale!
 
 # -----initialize screen & music ------ #
 size = width, height = 1000 , 500 
@@ -28,7 +32,8 @@ midiOutput = pygame.midi.Output(pygame.midi.get_default_output_id())
 # modified from Pygame Introduction: https://www.pygame.org/docs/tut/PygameIntro.html
 startTime = time.time()   
 while 1:
-    # different state, inspired by https://pythonprogramming.net/pause-game-pygame/ 
+    # ---different state---
+    # inspired by https://pythonprogramming.net/pause-game-pygame/ 
     if gamestate == "start":
         gamestate = startscreen(screen, size)
     if gamestate == "name":
@@ -48,9 +53,10 @@ while 1:
     # actual game mode:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: 
-            for index in range(0, 16):
-                for (status, data1, data2) in player.currentMusic[index]:
-                    midiOutput.note_off(data1)      
+            for i in range(8):          # turn off all the notes
+                for (status, data1, data2) in player.currentMusic[i]:
+                    if (status >= 0x80 and status <= 0x8F):
+                        midiOutput.write_short(status, data1, data2)
             midiOutput.close()
             del midiOutput              # so we safely exit the midi module
             pygame.midi.quit  
@@ -60,17 +66,18 @@ while 1:
             if event.key == pygame.K_p:     # for pausing!
                 gamestate = "pause"
 
+    # ---movement---
     # checking pressed keys, inspired from 
     # https://stackoverflow.com/questions/9961563/how-can-i-make-a-sprite-move-when-key-is-held-down 
     # we will do all the moves, and then check legalness later
     keys = pygame.key.get_pressed() 
     if keys[pygame.K_UP]:
-        player.move(0, -player.jump, player.currentExistables)
+        player.move(0, -1)
     if keys[pygame.K_DOWN]:
-        player.move(0, player.jump, player.currentExistables)   
+        player.move(0, 1)
     if keys[pygame.K_LEFT]:
         if (player.x > 0):
-            player.move(-15, 0, player.currentExistables)
+            player.move(-1, 0)
         else:
             if currentMission.getPreviousLevel(player.currentLevel) != None:
                 levelIndex = currentMission.getPreviousLevel(player.currentLevel)
@@ -78,64 +85,43 @@ while 1:
                 player.x = width - player.radius    
     if keys[pygame.K_RIGHT]: 
         if (player.x + 15 < width):
-            player.move(15, 0, player.currentExistables) 
+            player.move(1, 0)
         else:
             if currentMission.getNextLevel(player.currentLevel) != None:
                 levelIndex = currentMission.getNextLevel(player.currentLevel)
                 player.setupCurrentLevel(currentMission, levelIndex)
                 player.x = 0 + player.radius
+    #'''
+    player.checkLegal()
+    #'''
 
-    # ---check gravity--- 
-    # intersectCoord = None
-    # for lst in player.currentExistables["normal"]:
-    #     if player.inExistableSpace(lst) != None:
-    #         intersectCoord = player.inExistableSpace(lst)
-    # # either we are completely not in the terrain
-    # # or some part of us are in there 
-    # if intersectCoord == None:      # if in air
-    #     player.doGravity(player.currentExistables)    
-    # else:    
-    #                            # if any part is in terrain  
-    #     # crash = self.inExistableAxis(lst)
-    #     # if crash != None:
-    #     player.y = player.getLowerHeight(player.currentLevel["terrainsDict"]) - player.radius + 1
-    #     #player.move(0, 0, player.currentExistables)
-    #     player.resetInAir()       
-    intersectCoord = None
-    intersectType = None
-    for terrainType in player.currentExistables:
-        for i in player.currentExistables[terrainType]:
-            if player.inExistableSpace(i) != None:
-                intersectCoord = player.inExistableSpace(i)
-                intersectType = terrainType
-
-
-    #either we are completely not in the terrain
-    #or some part of us are in there 
-    if intersectCoord == None:      # if in air
-        player.doGravity(player.currentExistables)         
-    else:                           # if any part is in terrain    
-        player.y = player.getLowerHeight(player.currentLevel["terrainsDict"]) - player.radius + 1
-        player.resetInAir()       
-
-
-    # ---check if we somehow died---
+    # ---check if we died---
+    #''' DEBUG ONLY
     intersectCoord = None
     for i in player.currentExistables["dangerous"]:
-        if player.inExistableSpace(i) != None:
+        if player.inExistableAxis(i) != None:
+            for (status, data1, data2) in player.currentMusic[index]:
+                if status >= 0x80 and status <= 0x8F:
+                    midiOutput.write_short(status, data1, data2)
+            for (status, data1, data2) in DEATH_NOTES:
+                midiOutput.write_short(status, data1, data2)
             index = player.death(screen)
             player.setupCurrentLevel(currentMission, index)
+    #DEBUG ONLY '''
 
     # ---draw all the components--- 
+    # draw background
     screen.fill(currentMission.colorDict["background"])   
-    for tType in player.currentExistables:          # drawing a maybe pretty outline
-        if tType == "dangerous": continue
-        for mask in player.currentExistables[tType]:
-            pygame.draw.lines(screen, currentMission.colorDict["outline"], False, mask.outline(), 10)             
+    # draw decorations
+    currentTime = (time.time() - startTime) * 1000
+    currentMission.drawMusicDecorations(currentTime, screen, size) 
+    # draw outline
+    # for mask in player.currentExistables["normal"]:
+    #     pygame.draw.lines(screen, currentMission.colorDict["outline"], False, mask.outline(), 10)                 
     # 1. draw normal terrain
     for terrain in player.currentTerrain["normal"]:    
         terrain.drawTerrain(screen)
-    # 2. draw scary terrain
+    # 2. draw scary terrain to overlay on top of normal terrains
     for terrain in player.currentTerrain["dangerous"]:
         terrain.drawTerrain(screen)
     # draw collectibles
@@ -147,14 +133,15 @@ while 1:
     # draw endgoal
     if player.currentLevel["endpoint"] != None:    
         player.currentLevel["endpoint"].drawEndpoint(screen)
-
-    # draw music decoration stuff
     # draw player
-    player.drawPlayer(screen)                      
-    pygame.display.flip()
+    if player.isDead:
+        player.drawDeath(screen)
+    else:
+        player.drawPlayer(screen)      
+    # update screen                
+    pygame.display.flip()   
 
-    # ---play music---
-    currentTime = (time.time() - startTime) * 1000
+    # ---play music--- using currentTime from the drawing part
     music = currentMission.playMusic(currentTime)
     if music != None:
         for (status, data1, data2) in music:
@@ -174,10 +161,22 @@ while 1:
     checkpoint = player.currentLevel["checkpoint"]
     if checkpoint != None:
         if player.rect.colliderect(checkpoint.rect):
-            player.toCheckpoint(checkpoint)
+            if checkpoint.isChecked == False:
+                player.toCheckpoint(checkpoint)
+                for (status, data1, data2) in CHECKPOINT_NOTES:
+                    midiOutput.write_short(status, data1, data2)
+                    time.sleep(0.3)
+            
     # endpoint
     index = player.getLevelIndex(currentMission)
     if index == len(currentMission.levels) - 1:
         if player.rect.colliderect(player.currentLevel["endpoint"].rect):
-            gamestate = "level select"
-            currentMission = None
+            for i in range(8):              # also turn off all our notes
+                for (status, data1, data2) in player.currentMusic[i]:
+                    if (status >= 0x80 and status <= 0x8F): 
+                        midiOutput.write_short(status, data1, data2)
+            for note in WIN_NOTES:
+                midiOutput.write_short(0x90, note, 100)
+                time.sleep(0.3)
+            gamestate = endingScreen(screen, size)      # can select another level
+            currentMission = None   

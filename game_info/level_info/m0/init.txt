@@ -1,0 +1,17 @@
+color
+{"background":(221,219,198),"terrain":(85,110,111),"collectibles":(105,145,134),"player":(160,141,127),"checkpoint":(217,211,143),"outline":(72,84,67),"endpoint":(72,84,67),"decorations":(105,145,143)}
+ENDcolor
+
+init
+(0xC0,12)
+(0xC1,17)
+ENDinit
+
+music
+(0,(0x90,60,100))
+(0,(0x99,36,100))
+(7,(0x99,36,100))
+(2,(0x89,36,100))
+(2,(0x80,60,100))
+(1,(0x89,36,100))
+ENDmusic

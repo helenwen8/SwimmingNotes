@@ -1,6 +1,6 @@
-WORKS_CITED.txt
+# WORKS_CITED.txt
 
-This file lists all the resources I consulted and referenced throughout this project. 
+# This file lists all the resources I consulted and referenced throughout this project. 
 
 ~~ Special shoutout to Professor Taylor for enduring my frustrated rants about TP and giving me multiple good ideas.
 
@@ -27,8 +27,8 @@ Chrome Music Lab - for inspiring me the melodies for each level
     https://musiclab.chromeexperiments.com/Song-Maker/ 
 
 
-Codes that I used/referenced 
-(these are also cited in the actual code as needed)
+# Codes that I used/referenced 
+# (these are also cited in the actual code as needed)
 
 Pygame intro   
     https://www.pygame.org/docs/tut/PygameIntro.html
@@ -44,3 +44,13 @@ eval/exec help
 
 mask examples
     https://sivasantosh.wordpress.com/2012/07/23/using-masks-pygame/ 
+
+# Websites/credits of the images/sprites I used for this project
+
+quarter_rest.png
+	https://thenounproject.com/term/quarter-rest/98899/
+	Quarter Rest by Chance Smith from the Noun Project
+
+music_note.png
+
+

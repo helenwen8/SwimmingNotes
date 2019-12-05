@@ -12,16 +12,16 @@ pygame.init()
 
 class Player(object):
     radius = 30
-    jump = 30
     def __init__(self, center, color, currentMission):
         self.color = color    
         self.x, self.y = center[0], center[1]
-        self.leftX, self.rightX = self.x - self.radius, self.x + self.radius
-        # ---for gravity & wall climbing--- 
+        self.dx, self.dy = 15, -15
+        self.jump = 15
+        # ---for gravity & flying--- 
         self.isInAir = True
         self.count = 0
         self.mask = None
-        #self.xSensor = 
+        self.swimming = False
         # ---for level specific things---
         self.setupCurrentLevel(currentMission, 0)
         # ---for checkpoints---
@@ -29,9 +29,11 @@ class Player(object):
         self.checkedCollectibles = copy.deepcopy(self.currentMusic) # before the checkpoint
         self.lastCheckpoint = (center, 0)       # ((x, y), level index)
         self.currentMission = currentMission
+        self.isDead = False
         # set up shit
-        sprite = pygame.image.load("death_sprite_maybe.png")
-        self.deathSprite = pygame.transform.scale(sprite, (480, 360))
+        # sprite = pygame.image.load("death_sprite_maybe.png")
+        # self.deathSprite = pygame.transform.scale(sprite, (480, 360))
+        self.currentSprite = self.setupSprite()
 
     def setupCurrentLevel(self, currentMission, level):
         self.currentLevel = currentMission.levels[level]
@@ -41,26 +43,43 @@ class Player(object):
         self.currentTerrainsDict = self.currentLevel["terrainsDict"]
         self.currentMusic = copy.deepcopy(currentMission.music)
         
-    def setupDeathAnimation(self):
-        pass
+    def setupSprite(self):
+        WHITE = (255, 255, 255)
+        self.sprite0, self.sprite1 = [], []
+        tempList = ["front", "up", "down", "side"]
+        sprite1 = (pygame.image.load("game_info/" + path + "_1.png") for path in tempList)
+        for sprite in sprite1:
+            self.sprite1.append(pygame.transform.smoothscale(sprite, (60,60)))
+        sprite0 = (pygame.image.load("game_info/" + path + "_0.png") for path in tempList)
+        for sprite in sprite0:
+            self.sprite0.append(pygame.transform.smoothscale(sprite, (60,60)))
+        return self.sprite0[0]
+
+
+    def drawDeath(self):
+        #surface = pygame.Surface(int(self.radius * 2), int(self.radius * 2))
+        deathTopLeft = (self.x - self.radius, self.y - self.radius)
+        #spriteWidth, spriteHeight = 1985 / 8, 1312 / 6
+        for x in range(8):
+            for y in range(6):
+                #xOffset, yOffset = x * spriteWidth, y * spriteHeight
+                #screen.blit(self.deathSprite, deathTopLeft, (60 * x, 60 * y, 60, 60))
+                screen.blit(Checkpoints.image, deathTopLeft)
+                pygame.display.flip()
+                #print ("yay")
+                time.sleep(0.01)
 
     # draw and update rect 
-    def drawPlayer(self, display):
-        self.rect = pygame.draw.circle(display, self.color, 
+    def drawPlayer(self, screen):
+        self.rect = pygame.draw.circle(screen, self.color, 
                     (int(self.x), int(self.y)), self.radius)
-    
+        screen.blit(self.currentSprite, (int(self.x - self.radius), int(self.y - self.radius)))
     # for collectibles, checkpoint, endpoint
     def checkCollision(self, others):
         return self.rect.collidelist(others)
 
     # referenced from https://sivasantosh.wordpress.com/2012/07/23/using-masks-pygame/
     # for how to code mask.overlap and offsets
-    def inExistableSpace(self, mask, xOffset = None, yOffset = None):
-        if xOffset == None:
-            xOffset = self.x - self.radius
-        if yOffset == None:
-            yOffset = self.y - self.radius
-        return mask.overlap(self.mask, (xOffset, yOffset)) 
     def inExistableAxis(self, mask, xOffset = None, yOffset = None):
         if xOffset == None:
             xOffset = self.x - self.radius
@@ -71,17 +90,6 @@ class Player(object):
     # ---death and checkpoints and respawn---
     # image crop tutorial https://stackoverflow.com/questions/6239769/how-can-i-crop-an-image-with-pygame
     def death(self, screen):        # morbid much?
-        #surface = pygame.Surface(int(self.radius * 2), int(self.radius * 2))
-        deathTopLeft = (self.x - self.radius, self.y - self.radius)
-        #spriteWidth, spriteHeight = 1985 / 8, 1312 / 6
-        for x in range(8):
-            for y in range(6):
-                #xOffset, yOffset = x * spriteWidth, y * spriteHeight
-                screen.blit(self.deathSprite, deathTopLeft, (60 * x, 60 * y, 60, 60))
-                pygame.display.flip()
-                #print ("yay")
-                time.sleep(0.01)
-
         self.x, self.y = self.lastCheckpoint[0] # go back to last place
         self.currentMusic = self.currentMission.music = copy.deepcopy(self.checkedCollectibles)  # go back to old music
         for (level, notes) in self.uncheckedCollectibles:
@@ -98,83 +106,84 @@ class Player(object):
             self.lastCheckpoint = (checkpoint.center, checkpoint.level) 
 
     # ---moving physics--- 
-    def move(self, dx, dy, existableMask):
-        self.x += dx
-        self.y += dy
-        for lst in existableMask["normal"]:
-            while (self.inExistableSpace(lst) != None and
-                (abs(self.inExistableSpace(lst)[0] - self.x) < self.radius*0.8) and
-                (abs(self.inExistableSpace(lst)[1] - self.y) < self.radius*0.8)):
-                crash = self.inExistableSpace(lst)
-                if crash[0] > self.x: self.x -= 1
-                if crash[0] < self.x: self.x += 1
-                if crash[1] > self.y: self.y -= 1
-                if crash[1] < self.y: self.y += 1
+    def move(self, dx, dy):
+        # dx, dy can either be -1, 0, or 1
+        if self.swimming:
+            self.x += dx * 9
+            self.y += dy * 9
+            spriteSet = self.sprite1
+        else:
+            self.x += dx * 15
+            self.y += dy * 15
+            spriteSet = self.sprite0
 
+        if dx > 0:      self.currentSprite = spriteSet[3]
+        elif dx < 0:    self.currentSprite = pygame.transform.flip(spriteSet[3], True, False)
+        elif dy > 0:      self.currentSprite = spriteSet[1]
+        elif dy < 0:    self.currentSprite = spriteSet[2]
+        
+        # self.x += dx * 30
+        # self.y += dy * 30
+
+    def checkLegal(self):
+        intersectCoord = None
+        for i in self.currentExistables["normal"]:
+            if self.inExistableAxis(i) != None:
+                intersectCoord = self.inExistableAxis(i)
+                break
+        
+        if intersectCoord != None:
+            if (intersectCoord[1] > self.y and
+                (intersectCoord[1] - self.y) > self.radius * 0.85):  # pop them up 
+                self.resetInAir()
+                self.swimming = False
+                self.y = self.getLowerHeight(self.currentTerrainsDict) - self.radius - 2
+            elif intersectCoord[1] < self.y: 
+                self.swimming = True
+                self.doGravity()
+        else:
+            self.swimming = False
+            self.doGravity()    
 
     def resetInAir(self):
         self.isInAir = False
         self.count = 0
 
-    def doGravity(self, existableList):
-        self.count += 1
-        self.move(0, 1 * self.count, existableList)
+    def doGravity(self):
+        if self.swimming:
+            self.y -= 1
+        else:
+            self.count += 1
+            self.y += self.count
 
-    # make sure we are at the ground, not another plane
+
+    # make sure we are at the ground
     # so far this works pretty nicely
     def getLowerHeight(self, existables): 
-        # not only lowerst but also existable!!
+        if self.x < 0: self.x = 0
+        yList = existables[self.x]
+        nearestY = yList[-1]
+        count = 0
+        for y in reversed(yList):
+            count += 1
+            if y > self.y and count % 2 == 0:
+                if abs(y - self.y) < abs(nearestY - self.y):
+                    nearestY = y
+        return nearestY  
+
+    def getUpperHeight(self, existables): 
         if self.x < 0: self.x = 0
         yList = existables[self.x]
         nearestY = yList[0]
         count = 0
         print (yList)
-        for y in reversed(yList):
-            #print (yList)
+        for y in (yList):
             count += 1
-            if y > self.y and count % 2 == 0:
-            # if (abs(self.y - y) < abs(self.y - nearestY) and 
-            #     y > self.y and count % 2 == 0):
-                # for i in self.currentExistables["normal"]:
-                #     if self.inExistableSpace(i) == None:
-            # if abs(self.y - y) < abs(self.y - nearestY) and y > self.y:
-            #if (self.y - y) < (self.y - nearestY) and y > self.y:
-            #if y > self.y and y > nearestY:
-                nearestY = y
-        return nearestY    
-        # # not only lowerst but also existable!!
-        # if self.x < 0: self.x = 1
-        # elif self.x > 999: self.x = 998
-        # #while len(yList[self.x]) < 
-        # # (existables)
-        # yList = existables[self.x]
-        # lowestY = 500
-        # for y in reversed(yList):
-        #     if y > self.y:
-        #         lowestY = y
-        # return lowestY   
-        #         # not only lowerst but also existable!!
-        # if self.x < 0: self.x = 0
-        # yList = existables[self.x]
-        # nearestY = yList[0]
-        # count = 0
-        # for y in reversed(yList):
-        #     #print (yList)
-        #     count += 1
-
-        #     for i in self.currentExistables["normal"]:
-        #         if self.inExistableSpace(i, None, y) != None:
-        #             count -= 1
-        #     if y > self.y and count % 2 != 0:
-        #     # if (abs(self.y - y) < abs(self.y - nearestY) and 
-        #     #     y > self.y and count % 2 == 0):
-        #         # for i in self.currentExistables["normal"]:
-        #         #     if self.inExistableSpace(i) == None:
-        #     # if abs(self.y - y) < abs(self.y - nearestY) and y > self.y:
-        #     #if (self.y - y) < (self.y - nearestY) and y > self.y:
-        #     #if y > self.y and y > nearestY:
-        #         nearestY = y
-        # return nearestY 
+            if y < self.y and count % 2 == 0:
+                if abs(y - self.y) < abs(nearestY - self.y):
+                    nearestY = y
+        return nearestY      
+        
 
     def getLevelIndex(self, currentMission):
         return currentMission.levels.index(self.currentLevel)
@@ -182,7 +191,7 @@ class Player(object):
 # -----collectibles (basically music notes)----- #
 class Collectibles(object):     
     radius = 20        
-    image = pygame.image.load("level_info/music_note.png")
+    image = pygame.image.load("game_info/music_note.png")
     image = pygame.transform.smoothscale(image, (30, 30))
     image = pygame.transform.rotate(image, -20)
     def __init__(self, center, statusByte, color):
@@ -197,19 +206,19 @@ class Collectibles(object):
 
 class Checkpoints(object):
     radius = 40
-    image = pygame.image.load("level_info/quarter_rest.png")
+    image = pygame.image.load("game_info/quarter_rest.png")
     image = pygame.transform.smoothscale(image, (70, 70))
-    def __init__(self, center, level, notCheckedColor, checkedColor):
+    def __init__(self, center, level, color):
         self.center = center
-        self.notCheckedColor = notCheckedColor
-        self.checkedColor = checkedColor
+        self.color = color
         self.isChecked = False      # true when player reach that checkpoint
         self.level = level
     
     def drawCheckpoint(self, screen):
-        if self.isChecked:      color = self.checkedColor
-        else:                   color = self.notCheckedColor
-        self.rect = pygame.draw.circle(screen, color, self.center, self.radius) 
+        if self.isChecked:      
+            self.rect = pygame.draw.circle(screen, self.color, self.center, self.radius) 
+        else:                   
+            self.rect = pygame.draw.circle(screen, self.color, self.center, self.radius, 5)
         screen.blit(Checkpoints.image, (self.center[0] - 35, self.center[1] - 35))
 
 class Endpoint(object):
@@ -252,7 +261,7 @@ class Terrain(object):
 # so this is bad terrain
 # if you touch this you die lel
 class DangerousTerrain(Terrain):
-    color = (255, 51, 51)
+    color = (178, 34, 34)
     def __init__ (self, pointsList):
         super().__init__(pointsList, DangerousTerrain.color)
 

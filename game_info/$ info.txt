@@ -1,0 +1,50 @@
+Each file is contains information for each Mission_Level.
+
+There are currently four groups of texts per Mission_Level file:
+	terrains, existantes, music, collectibles
+Each section concludes with the line END + section name
+
+Right now, the keyword compr means we are doing list comprehension.
+That shit is buggy and I don’t think I am modifying the local variables, but it is a messy clusterfuck.
+But bc we are using dictionary, I think we will be okay. (Thank you python I guess)
+
+We use eval and exec because they re cool.
+
+KEYWORDS:
+	height = canvas height
+	width  = canvas width
+
+
+FOR MUSIC:
+
+Collectible: where they are
+Music: 	always keyword = always playing, usually the percussion part, probably only level one
+	for other music, the second value of the tuple decides when to not play the music
+	or we can just close all music at the of each level, and then turn them back on next level?
+	so -1 means it will play from the start
+	we should have another thing that labels the instruments
+
+What if we have a dictionary, marking the beats?
+So if we have a sound we need to play at 500ms, we play that
+Then we can add that thing into our channel immediately
+One note should also have the ability to have play multiple notes
+
+Or we have all the thing located in a dictionary
+If it is always playing, wwe store them as -1 -1
+But if it is not playing, we store the x and y, and not play them
+We play the note if it is -1, -1
+We should also have a thing called duration - how long each notes last
+Then for each we have a counter
+
+The music section is only dedicated to the 
+Each level is only like a measure (or two if Im really dumb I guess)
+The second value of the tuple is the duration, in beats..
+So for now, each level will be counted in 16 notes
+So that is 16 items per music list thing
+
+I can try the write message thing....
+So at each time interval, I read a set of message
+Since we have sixteen notes, we should just have. Dictionary of all the time? Ex count 0, 1, 2, 3, 4, 5, 6, 7...e
+Then at each dictionary, we have lists of a bunch of short messages? Or just messags
+
+	

@@ -8,12 +8,9 @@ pygame.init()
 # the screen player sees at first
 def startscreen(screen, size):
     width, height = size
-    running = True
-    while running:
+    while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
-                #sys.exit() 
-                running = False
                 pygame.quit()
                 os._exit(0)
             elif event.type == pygame.KEYDOWN:   
@@ -40,7 +37,8 @@ def nameScreen(screen, size):
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
-                sys.exit()  
+                pygame.quit()
+                os._exit(0)
             elif event.type == pygame.KEYDOWN:   
                 if event.key == pygame.K_RETURN: 
                     return userInput
@@ -71,8 +69,8 @@ def nameScreen(screen, size):
 # referenced from 112 website for file io
 def getLevels():
     levels = []
-    for path in os.listdir("level_info"):
-        if not os.path.isfile("level_info" + os.sep + path):
+    for path in os.listdir("game_info/level_info"):
+        if not os.path.isfile("game_info/level_info" + os.sep + path):
             if path == "m0":
                 levels.append((path, "Tutorial"))
             elif path.startswith("m"):
@@ -94,18 +92,19 @@ def levelSelectScreen(screen, size, userInput):
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
-                sys.exit()  
+                pygame.quit()
+                os._exit(0) 
             elif event.type == pygame.KEYDOWN:   
                 if event.key == pygame.K_RETURN: 
                     return 0
   
         welcomeTextFont = pygame.font.SysFont("monospace", 50)
-        welcomeText = welcomeTextFont.render(f"Welcome, {userInput}", 1, (214, 198, 163))
-        welcomeTextSize = welcomeTextFont.size(f"Welcome, {userInput}")
+        welcomeText = textFont.render(f"Welcome, {userInput}", 1, (214, 198, 163))
+        welcomeTextSize = textFont.size(f"Welcome, {userInput}")
 
         enterTextFont = pygame.font.SysFont("monospace", 50)
-        enterText = enterTextFont.render("press ENTER/RETURN to go to game", 1, (214, 198, 163))
-        enterTextSize = enterTextFont.size("press ENTER/RETURN to go to game")
+        enterText = textFont.render("press ENTER/RETURN to go to game", 1, (214, 198, 163))
+        enterTextSize = textFont.size("press ENTER/RETURN to go to game")
 
         screen.fill((172, 156, 156))
         screen.blit(welcomeText, (width//2 - welcomeTextSize[0]//2, height // 5))
@@ -120,7 +119,8 @@ def levelSelectScreen(screen, size, userInput):
         #     levelText.render(textFont.render(level[1], 1, (214, 198, 163)))
         #     levelTextSize.append(textFont.size(level[1]))
         
-        #or levelNumber in range(numberOfLevels):
+        # for levelNumber in range(numberOfLevels):
+        #     pygame.draw.polygon(screen, (levelNumber * 
 
 
         
@@ -132,10 +132,11 @@ def endingScreen(screen, size):
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: 
-                sys.exit()  
+                pygame.quit()
+                os._exit(0) 
             elif event.type == pygame.KEYDOWN:   
                 if event.key == pygame.K_RETURN: 
-                    return levelSelectScreen(screen, size, "yeet")
+                    return "level select"
   
         congratsTextFont = pygame.font.SysFont("monospace", 50)
         congratsText = congratsTextFont.render(f"Good job!!", 1, (214, 198, 163))

@@ -1,0 +1,16 @@
+terrains
+[(0,height),(width,height),(width,height//5*4),(0,height//5*4)]
+ENDterrains
+
+dangerous
+ENDdangerous
+
+endpoint
+(width//4*3,height//5*3)
+ENDendpoint
+
+checkpoint
+ENDcheckpoint
+
+collectibles
+ENDcollectibles
