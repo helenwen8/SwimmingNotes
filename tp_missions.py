@@ -78,7 +78,6 @@ class Missions(object):
         terrains = Missions.extractInfoFromSection(alllines[terrainStart + 1:terrainEnd])
         for points in terrains:
             levelInfo["terrains"]["normal"].add(Terrain(points, colors["terrain"]))
-
         # set up terrain masks
         for terrain in levelInfo["terrains"]["normal"]:
             tempDisplay.fill(WHITE)
@@ -86,32 +85,26 @@ class Missions(object):
             temp = pygame.display.get_surface()
             temp.set_colorkey(WHITE)
             levelInfo["existables"]["normal"].add(pygame.mask.from_surface(temp))
-
         #set up terrainDict for checking above/below
         existableList = []
-        #for terrainType in levelInfo["existables"]:
         for existObject in levelInfo["existables"]["normal"]:
             existableList.extend(existObject.outline())
         levelInfo["terrainsDict"] = Terrain.mergeTerrainList(existableList)
-
         # set up collectibles
         collectStart, collectEnd = Missions.getLineIndex("collectibles", alllines)
         collectibles = Missions.extractInfoFromSection(alllines[collectStart + 1:collectEnd])
         for points in collectibles:
             levelInfo["collectibles"].add(Collectibles(points[0], points[1], colors["collectibles"]))
-
         # set up checkpoint - one per level max
         checkStart, checkEnd = Missions.getLineIndex("checkpoint", alllines)
         checkpoint = Missions.extractInfoFromSection(alllines[checkStart + 1:checkEnd])
         if checkpoint != []:
             levelInfo["checkpoint"] = Checkpoints(checkpoint[0][0], checkpoint[0][1], colors["checkpoint"])
-
-        #set up end goal
+        # set up end goal
         if Missions.getLineIndex("endpoint", alllines) != -1:
             endStart, endEnd = Missions.getLineIndex("endpoint", alllines)
             endpoint = Missions.extractInfoFromSection(alllines[endStart + 1:endEnd])
             levelInfo["endpoint"] = Endpoint(endpoint[0], colors["endpoint"])
-
         return levelInfo
 
     @staticmethod
@@ -121,7 +114,7 @@ class Missions(object):
         temp = pygame.display.get_surface()
         temp.set_colorkey(WHITE)
         mask1 = pygame.mask.from_surface(temp)
-        # we are going to try something
+        # a collision axis thing that is not completely useful
         tempDisplay.fill(WHITE)
         pygame.draw.line(tempDisplay, BLACK, (30,1),(30,30), 1)
         pygame.draw.line(tempDisplay, BLACK, (30,60),(30,30), 1)
@@ -139,24 +132,35 @@ class Missions(object):
         colorStart, colorEnd = Missions.getLineIndex("color", alllines)
         return Missions.extractInfoFromSection(alllines[colorStart + 1:colorEnd])
 
+    # set up the initial program changes
     @staticmethod
     def initiateMusic(pathname):
         alllines = Missions.getLines(pathname)
-        # for initial program changes
         initStart, initEnd = Missions.getLineIndex("init", alllines)
         return Missions.extractInfoFromSection(alllines[initStart + 1:initEnd])
 
+    # get all the music infos
     @staticmethod
     def setupMusicDict(pathname):
         alllines = Missions.getLines(pathname)
         musicDict = copy.deepcopy(Missions.musicDict)
-        # get all the music infos
         musicStart, musicEnd = Missions.getLineIndex("music", alllines)
         music = Missions.extractInfoFromSection(alllines[musicStart + 1:musicEnd])
-        for note in music:  
-            # format: (availble zones, (status, data1, data2))
-            musicDict[note[0]].append(note[1])
+        for note in music: 
+            musicDict[note[0]].append(note[1])  # (status, data1, data2)
         return musicDict
+
+    def getBPM(pathname):
+        alllines = Missions.getLines(pathname)
+        # for initial program changes
+        start, end = Missions.getLineIndex("bpm", alllines)
+        return Missions.extractInfoFromSection(alllines[start + 1:end])
+
+    def getTonic(pathname):
+        alllines = Missions.getLines(pathname)
+        # for initial program changes
+        start, end = Missions.getLineIndex("tonic", alllines)
+        return Missions.extractInfoFromSection(alllines[start + 1:end])
 
     # saves a list of all levels
     def setupLevels(self, path, display, colorDict):
@@ -206,7 +210,7 @@ class Missions(object):
                     noteValue = (data1 - 60) % 24
                     pygame.draw.circle(screen, self.colorDict["decorations"], 
                                     (int(xGap * index), int(yGap * noteValue)), 28)
-                    pygame.draw.circle(screen, (202,222,201),
+                    pygame.draw.circle(screen, self.colorDict["outline"],
                         (int(xGap * index), int(yGap * noteValue)), 30, 5)
 
     def transpose(self, melody):

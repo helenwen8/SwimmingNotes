@@ -30,9 +30,8 @@ class Player(object):
         self.lastCheckpoint = (center, 0)       # ((x, y), level index)
         self.currentMission = currentMission
         self.isDead = False
-        # set up shit
-        # sprite = pygame.image.load("death_sprite_maybe.png")
-        # self.deathSprite = pygame.transform.scale(sprite, (480, 360))
+        self.win = False
+        # ---sprites---
         self.currentSprite = self.setupSprite()
 
     def setupCurrentLevel(self, currentMission, level):
@@ -44,7 +43,13 @@ class Player(object):
         self.currentMusic = copy.deepcopy(currentMission.music)
         
     def setupSprite(self):
-        WHITE = (255, 255, 255)
+        # win sprite
+        sprite = pygame.image.load("game_info/win.png")
+        self.winSprite = pygame.transform.smoothscale(sprite, (60,60))
+        # dead sprite
+        sprite = pygame.image.load("game_info/dead.png")
+        self.deathSprite = pygame.transform.smoothscale(sprite, (60,60))
+        # normal sprite
         self.sprite0, self.sprite1 = [], []
         tempList = ["front", "up", "down", "side"]
         sprite1 = (pygame.image.load("game_info/" + path + "_1.png") for path in tempList)
@@ -53,27 +58,20 @@ class Player(object):
         sprite0 = (pygame.image.load("game_info/" + path + "_0.png") for path in tempList)
         for sprite in sprite0:
             self.sprite0.append(pygame.transform.smoothscale(sprite, (60,60)))
+        # return default sprite
         return self.sprite0[0]
-
-
-    def drawDeath(self):
-        #surface = pygame.Surface(int(self.radius * 2), int(self.radius * 2))
-        deathTopLeft = (self.x - self.radius, self.y - self.radius)
-        #spriteWidth, spriteHeight = 1985 / 8, 1312 / 6
-        for x in range(8):
-            for y in range(6):
-                #xOffset, yOffset = x * spriteWidth, y * spriteHeight
-                #screen.blit(self.deathSprite, deathTopLeft, (60 * x, 60 * y, 60, 60))
-                screen.blit(Checkpoints.image, deathTopLeft)
-                pygame.display.flip()
-                #print ("yay")
-                time.sleep(0.01)
 
     # draw and update rect 
     def drawPlayer(self, screen):
         self.rect = pygame.draw.circle(screen, self.color, 
                     (int(self.x), int(self.y)), self.radius)
-        screen.blit(self.currentSprite, (int(self.x - self.radius), int(self.y - self.radius)))
+        if self.isDead:
+            screen.blit(self.deathSprite, (int(self.x - self.radius), int(self.y - self.radius)))
+        elif self.win:
+            screen.blit(self.winSprite, (int(self.x - self.radius), int(self.y - self.radius)))
+        else:
+            screen.blit(self.currentSprite, (int(self.x - self.radius), int(self.y - self.radius)))
+    
     # for collectibles, checkpoint, endpoint
     def checkCollision(self, others):
         return self.rect.collidelist(others)
@@ -88,7 +86,6 @@ class Player(object):
         return mask.overlap(self.axis, (xOffset, yOffset))     
  
     # ---death and checkpoints and respawn---
-    # image crop tutorial https://stackoverflow.com/questions/6239769/how-can-i-crop-an-image-with-pygame
     def death(self, screen):        # morbid much?
         self.x, self.y = self.lastCheckpoint[0] # go back to last place
         self.currentMusic = self.currentMission.music = copy.deepcopy(self.checkedCollectibles)  # go back to old music
@@ -108,6 +105,7 @@ class Player(object):
     # ---moving physics--- 
     def move(self, dx, dy):
         # dx, dy can either be -1, 0, or 1
+        if self.isDead:     return "Yeet"
         if self.swimming:
             self.x += dx * 9
             self.y += dy * 9
@@ -119,13 +117,14 @@ class Player(object):
 
         if dx > 0:      self.currentSprite = spriteSet[3]
         elif dx < 0:    self.currentSprite = pygame.transform.flip(spriteSet[3], True, False)
-        elif dy > 0:      self.currentSprite = spriteSet[1]
-        elif dy < 0:    self.currentSprite = spriteSet[2]
+        elif dy > 0:      self.currentSprite = spriteSet[2]
+        elif dy < 0:    self.currentSprite = spriteSet[1]
         
         # self.x += dx * 30
         # self.y += dy * 30
 
     def checkLegal(self):
+        if self.isDead: return  None
         intersectCoord = None
         for i in self.currentExistables["normal"]:
             if self.inExistableAxis(i) != None:
@@ -156,7 +155,6 @@ class Player(object):
             self.count += 1
             self.y += self.count
 
-
     # make sure we are at the ground
     # so far this works pretty nicely
     def getLowerHeight(self, existables): 
@@ -170,20 +168,6 @@ class Player(object):
                 if abs(y - self.y) < abs(nearestY - self.y):
                     nearestY = y
         return nearestY  
-
-    def getUpperHeight(self, existables): 
-        if self.x < 0: self.x = 0
-        yList = existables[self.x]
-        nearestY = yList[0]
-        count = 0
-        print (yList)
-        for y in (yList):
-            count += 1
-            if y < self.y and count % 2 == 0:
-                if abs(y - self.y) < abs(nearestY - self.y):
-                    nearestY = y
-        return nearestY      
-        
 
     def getLevelIndex(self, currentMission):
         return currentMission.levels.index(self.currentLevel)
@@ -200,7 +184,6 @@ class Collectibles(object):
         self.color = color
 
     def drawCollectibles(self, screen):
-        
         self.rect = pygame.draw.circle(screen, self.color, self.center, self.radius)
         screen.blit(Collectibles.image, (self.center[0] - 18, self.center[1] - 18)) 
 
@@ -216,9 +199,11 @@ class Checkpoints(object):
     
     def drawCheckpoint(self, screen):
         if self.isChecked:      
-            self.rect = pygame.draw.circle(screen, self.color, self.center, self.radius) 
+            self.rect = pygame.draw.circle(screen, self.color, 
+                        (int(self.center[0]), int(self.center[1])), self.radius) 
         else:                   
-            self.rect = pygame.draw.circle(screen, self.color, self.center, self.radius, 5)
+            self.rect = pygame.draw.circle(screen, self.color, 
+                        (int(self.center[0]), int(self.center[1])), self.radius, 5)
         screen.blit(Checkpoints.image, (self.center[0] - 35, self.center[1] - 35))
 
 class Endpoint(object):
@@ -228,7 +213,6 @@ class Endpoint(object):
         self.color = color
     
     def drawEndpoint(self, display):
-        #print (self.color, self.center, self.radius)
         self.rect = pygame.draw.circle(display, self.color, self.center, self.radius)
      
 # -----terrains (main class)----- #
@@ -240,7 +224,7 @@ class Terrain(object):
     def drawTerrain(self, display):
         pygame.draw.polygon(display, self.color, self.pointsList)
 
-    # referenced from my own hw9 lol
+    # referenced from my own hw9 
     # also thanks to Prof. Taylor for a genius idea
     # this should take in masks and combine them into a list of outlines
     @staticmethod
@@ -258,8 +242,7 @@ class Terrain(object):
             d[key] = sorted(d[key])
         return d
 
-# so this is bad terrain
-# if you touch this you die lel
+# bad terrain - you die
 class DangerousTerrain(Terrain):
     color = (178, 34, 34)
     def __init__ (self, pointsList):

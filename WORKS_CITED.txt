@@ -1,31 +1,31 @@
 # WORKS_CITED.txt
 
-# This file lists all the resources I consulted and referenced throughout this project. 
+# This file lists all the resources I consulted and referenced throughout this project.
+# (also just for my own good because I have terrible memories) 
 
-~~ Special shoutout to Professor Taylor for enduring my frustrated rants about TP and giving me multiple good ideas.
+~~ Special shoutout to Mike Taylor, our great 15-112 professor, for enduring my frustrated rants about TP and giving me multiple good ideas.
 
-~~ Special shoutout to Matt, my TP Mentor, for dealing with my disoriented late night emails and giving me countless supports.
+~~ Special shoutout to Matt Kong, my TP Mentor, for dealing with my disoriented late night emails and my wack schedules.
 
-~~ Special shoutout to all my friends (112 or not) who helped me not die during this project lmao
+~~ Special shoutout to all my friends (112 or not) who helped me brainstorm a project idea, as well as encouraging me and helping me destress.
 
-Python documentations (duh)
+Python documentations 
     https://docs.python.org/3/
 
 CMU 15-112 website
     http://www.cs.cmu.edu/~112/index.html
 
-Pygame documentations (duh)
+Pygame documentations 
     https://www.pygame.org/docs/ 
 
-list of MIDI status byte
+List of MIDI status byte
     https://www.midi.org/specifications-old/item/table-2-expanded-messages-list-status-bytes
 
-list of MIDI instruments
+List of MIDI instruments
     https://en.wikipedia.org/wiki/General_MIDI#Parameter_interpretations 
 
-Chrome Music Lab - for inspiring me the melodies for each level
+Chrome Music Lab - for helping me the create the melodies for each level
     https://musiclab.chromeexperiments.com/Song-Maker/ 
-
 
 # Codes that I used/referenced 
 # (these are also cited in the actual code as needed)
@@ -33,7 +33,7 @@ Chrome Music Lab - for inspiring me the melodies for each level
 Pygame intro   
     https://www.pygame.org/docs/tut/PygameIntro.html
 
-Pygame pressed key 
+Pygame pressed key example
     https://stackoverflow.com/questions/9961563/how-can-i-make-a-sprite-move-when-key-is-held-down
 
 Pygame midi example
@@ -42,15 +42,26 @@ Pygame midi example
 eval/exec help
     https://stackoverflow.com/questions/35336702/variable-not-define-after-execvariable-value 
 
-mask examples
+Mask examples
     https://sivasantosh.wordpress.com/2012/07/23/using-masks-pygame/ 
+
+Pause screen examples
+    https://pythonprogramming.net/pause-game-pygame/
 
 # Websites/credits of the images/sprites I used for this project
 
 quarter_rest.png
-	https://thenounproject.com/term/quarter-rest/98899/
-	Quarter Rest by Chance Smith from the Noun Project
+    Quarter Rest by Chance Smith from the Noun Project
+    https://thenounproject.com/term/quarter-rest/98899/
+	
 
 music_note.png
+    https://www.stickpng.com/img/miscellaneous/music-symbols/musical-note-eighth-note
 
+# stuff that I made
 
+The player sprites
+
+The melodies
+
+The levels

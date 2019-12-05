@@ -1,16 +1,16 @@
 terrains
-[(0,height//3),(100,height//5),(200,0),(0,0)]
-[(0,height)]+[(10*i,height//5*4) for i in range(0,width,5)]+[(width,height)]
-[(width//6-width//6%50,height//5*4-jump*2),(width//3-width//3%50,height//5*4-jump*2),(width//3-width//3%50,height//5*4-jump*4),(width//6-width//6%50,height//5*4-jump*4)]
+[(width//5*0.8,height//2),(width//5*2.2,height//2),(width//5*2.2,height//2+100),(width//5*0.8,height//2+100)]
+[(width//5*2.8,height//2),(width//5*4.3,height//2),(width//5*4.3,height//2+100),(width//5*2.8,height//2+100)]
+[(width//5*4.7,height//2),(width,height//2),(width,height//2+100),(width//5*4.7,height//2+100)]
 ENDterrains
 
-color 
-always=[(36,-1),(0,-1),(36,-1),(36,-1),(36,-1),(36,-1)]
-ENDcolor
+dangerous
+[(0,height//5*4),(width,height//5*4),(width,height),(0,height)]
+ENDdangerous
+
+checkpoint
+ENDcheckpoint
 
 collectibles
-[(100,height//4*3),2,[(0,(0x90,60,100)),(3,(0x80,60,100))]]
-[(400,height//4*3),2,[(3,(0x90,64,100)),(7,(0x80,64,100))]]
-[(500,height//8*6),2,[(7,(0x90,67,100)),(10,(0x80,67,100))]]
-[(700,height//4*3),2,[(10,(0x90,60,100)),(14,(0x80,60,100))]]
+[(width//5*3.5,height//2-50),[(0,(0x90,75,100)),(1,(0x80,75,100)),(1,(0x90,61,100)),(2,(0x80,61,100)),(6,(0x90,61,100)),(7,(0x80,61,100)),(7,(0x90,63,100)),(0,(0x80,63,100)),]]
 ENDcollectibles

@@ -1,0 +1,17 @@
+terrains
+[(width//2-100,height//4),(width//2-100,height//4+100),(width//2+100,height//4+100),(width//2+100,height//4)]
+[(width//2-100,height//3*2),(width//2-100,height//3*2+100),(width//2+100,height//3*2+100),(width//2+100,height//3*2)]
+[(0,height//5),(100,height//5*2),(width//3,height//5*3),(width//2,height//5*4.2),(width,height//5*4),(width,height),(0,height)]
+ENDterrains
+
+dangerous
+ENDdangerous
+
+checkpoint
+(width//2,height//5*3.8),3
+ENDcheckpoint
+
+collectibles
+[(width//2,height//3*2-50),[(1,(0x90,64,100)),(2,(0x80,64,100)),(4,(0x90,64,100)),(5,(0x80,64,100)),(3,(0x90,68,100)),(4,(0x80,68,100))]]
+[(width//2,height//3-100),[(5,(0x90,71,100)),(6,(0x80,71,100)),(4,(0x90,69,100)),(5,(0x80,69,100)),(7,(0x99,36,100)),(0,(0x89,36,100))]]
+ENDcollectibles

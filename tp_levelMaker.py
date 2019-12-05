@@ -15,26 +15,27 @@ import pygame, pygame.midi
 from tp_miscellaneous import *
 from tp_missions import *
 
-class MissionTutorial(Missions):
-    def __init__(self, size, display):
-        self.bpm = 120
-        self.timeInterval = Missions.getTimeInterval(self.bpm)
+class MissionSetup(Missions):
+    def __init__(self, size, display, pathname):
         self.width, self.height = size
         self.display = display
+        self.pathname = "game_info/level_info/" + pathname
         # this should set up all the levels
         self.initLevels()       # music and player
-        self.setupLevels("game_info/level_info/m0", self.display, self.colorDict)
-        self.tonic = 60 # major C
+        self.setupLevels(self.pathname, self.display, self.colorDict)
+        self.tonic = Missions.getTonic(self.pathname + "/init.txt")[0]
+        self.bpm = Missions.getBPM(self.pathname + "/init.txt")[0]
+        self.timeInterval = Missions.getTimeInterval(self.bpm)
 
     def initLevels(self):
         # set up the music dictionary
-        self.music = Missions.setupMusicDict("game_info/level_info/m0/init.txt")
+        self.music = Missions.setupMusicDict(self.pathname + "/init.txt")
         # this is so we can return the initial status bytes
         self.music["init"] = set()
-        for (status, data1) in Missions.initiateMusic("game_info/level_info/m0/init.txt"):
+        for (status, data1) in Missions.initiateMusic(self.pathname + "/init.txt"):
             self.music["init"].add((status, data1))
         # set up color templates
-        self.colorDict = Missions.initiateLevel("game_info/level_info/m0/init.txt")[0]
+        self.colorDict = Missions.initiateLevel(self.pathname + "/init.txt")[0]
 
     def setupPlayer(self):
         # set up player and player.mask

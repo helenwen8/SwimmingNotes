@@ -1,18 +1,21 @@
 terrains
-compr=[(0,height)]+[(10*i,height//5*4) for i in range(0,width,5)]+[(width,height)]
-compr=[(0,0)]+[(10*i,height//5) for i in range(0,width,5)]+[(width,0)]
+[(width,height//3),(width//3,height//3),(width//3,height//3-80),(width,height//3-80)]
+[(width//3*2,height//2),(width//3*2,height//2+80),(0,height//2+80),(0,height//2)]
+[(0,height),(width,height),(width,height//5*4),(0,height//5*4)]
 ENDterrains
 
-existables
-compr=[(10*i,height//5*4) for i in range(0,width,5)]
-compr=[(10*i,height//5) for i in range(0,width,5)]
-ENDexistables
+dangerous
+[(width//5*4,height),(width//5*4,height//3),(width,height//3),(width,height)]
+[(width-100,height//3-10),(width//3+100,height//3-10),(width//3+100,height//3-80+35),(width-100,height//3-80+35)]
+[(width//3*2-100,height//2+35),(width//3*2-100,height//2+80-10),(110,height//2+80-10),(100,height//2+35)]
+ENDdangerous
 
-color 
-
-ENDcolor
+checkpoint
+(width//5*2,height//2-50),2
+ENDcheckpoint
 
 collectibles
-[(100,height//5*4),2,[(0,(0x90,72,100)),(3,(0x80,72,100))]]
-[(400,height//4*3),2,[(3,(0x90,72,100)),(7,(0x80,72,100))]]
+[(width//5*3.3,height//3-150),[(0,(0x90,56,100)),(1,(0x80,56,100)),(2,(0x90,66,100)),(3,(0x80,66,100))]]
+[(width//5,height//2-50),[(6,(0x90,56,100)),(7,(0x80,56,100)),(7,(0x90,57,100)),(0,(0x80,57,100))]]
+[(width//5*2,height//5*4),[(7,(0x99,36,100)),(0,(0x89,36,100))]]
 ENDcollectibles

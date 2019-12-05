@@ -1,5 +1,13 @@
+bpm
+120
+ENDbpm
+
+tonic
+60
+ENDtonic
+
 color
-{"background":(221,219,198),"terrain":(85,110,111),"collectibles":(105,145,134),"player":(160,141,127),"checkpoint":(217,211,143),"outline":(72,84,67),"endpoint":(72,84,67),"decorations":(105,145,143)}
+{"background":(221,219,198),"terrain":(85,110,111),"collectibles":(105,145,134),"player":(160,141,127),"checkpoint":(217,211,143),"outline":(105,145,134),"endpoint":(72,84,67),"decorations":(202,222,201)}
 ENDcolor
 
 init
