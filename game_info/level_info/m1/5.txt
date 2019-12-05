@@ -1,7 +1,7 @@
 terrains
 [(0,height//2+100),(width//3,height//2+100),(width//3,height),(0,height)]
 [(width,height//2+100),(width//3*2,height//3*2.8),(width//3*2,height),(width,height)]
-[(width//2-200,height//2-150),(width//2+200,height//2-150),(width//2+200,height//2),(width//2-200,height//2)]
+[(width//2-300,height//2-150),(width//2+300,height//2-150),(width//2+300,height//2+50),(width//2-300,height//2+50)]
 ENDterrains
 
 dangerous

@@ -3,11 +3,13 @@
 # This file lists all the resources I consulted and referenced throughout this project.
 # (also just for my own good because I have terrible memories) 
 
-~~ Special shoutout to Mike Taylor, our great 15-112 professor, for enduring my frustrated rants about TP and giving me multiple good ideas.
+~~ Special shoutout to Mike Taylor, our amazing 15-112 professor, for enduring my frustrated rants about TP and giving me multiple good ideas.
 
-~~ Special shoutout to Matt Kong, my TP Mentor, for dealing with my disoriented late night emails and my wack schedules.
+~~ Special shoutout to Matt Kong, our wonderful TA and my TP Mentor, for dealing with my disoriented late night emails and my wack schedules.
 
-~~ Special shoutout to all my friends (112 or not) who helped me brainstorm a project idea, as well as encouraging me and helping me destress.
+~~ Special shoutout to all my friends (112 or not) who helped me brainstorm this project idea, as well as encouraging me and helping me destress.
+
+# General Documentations
 
 Python documentations 
     https://docs.python.org/3/
@@ -54,7 +56,6 @@ quarter_rest.png
     Quarter Rest by Chance Smith from the Noun Project
     https://thenounproject.com/term/quarter-rest/98899/
 	
-
 music_note.png
     https://www.stickpng.com/img/miscellaneous/music-symbols/musical-note-eighth-note
 
@@ -65,3 +66,5 @@ The player sprites
 The melodies
 
 The levels
+
+And obviously, the codes

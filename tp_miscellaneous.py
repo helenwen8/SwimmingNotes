@@ -1,8 +1,6 @@
-####################################################
 # miscellaneous.py
-# this file includes: terrains, collectibles, player
+# this file includes: terrains, collectibles, player, etc.
 # used by levelMaker.py and missions.py
-####################################################
 
 import copy, io, time
 import pygame
@@ -105,7 +103,7 @@ class Player(object):
     # ---moving physics--- 
     def move(self, dx, dy):
         # dx, dy can either be -1, 0, or 1
-        if self.isDead:     return "Yeet"
+        if self.isDead or self.win:     return "Yeet"
         if self.swimming:
             self.x += dx * 9
             self.y += dy * 9
@@ -119,18 +117,14 @@ class Player(object):
         elif dx < 0:    self.currentSprite = pygame.transform.flip(spriteSet[3], True, False)
         elif dy > 0:      self.currentSprite = spriteSet[2]
         elif dy < 0:    self.currentSprite = spriteSet[1]
-        
-        # self.x += dx * 30
-        # self.y += dy * 30
 
     def checkLegal(self):
-        if self.isDead: return  None
+        if self.isDead or self.win: return  None
         intersectCoord = None
         for i in self.currentExistables["normal"]:
             if self.inExistableAxis(i) != None:
                 intersectCoord = self.inExistableAxis(i)
                 break
-        
         if intersectCoord != None:
             if (intersectCoord[1] > self.y and
                 (intersectCoord[1] - self.y) > self.radius * 0.85):  # pop them up 

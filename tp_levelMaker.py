@@ -1,14 +1,5 @@
-######################################################
 # levelMaker.py
 # this includes all the music, terrains for each level
-# ####################################################
-
-# we will have 3 missions, 5 levels each?
-# because we have the checkpoint feature, we want to make sure we store each 
-# collectable in a separate list
-# like we can initialize a new level class.... and then when we initialize it
-# we can have a CLASS ATTRIBUTE!!!! of all the collectable
-# and the one we havent collect yet
 
 import copy, io
 import pygame, pygame.midi

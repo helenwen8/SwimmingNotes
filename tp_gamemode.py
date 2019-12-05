@@ -1,4 +1,5 @@
-# gamemodes
+# tp_gamemodes.py
+# make different modes for different screens
 
 import pygame, sys, io, os
 from tp_levelMaker import *

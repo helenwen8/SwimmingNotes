@@ -1,6 +1,6 @@
 terrains
 [(width//2-100,height//4),(width//2-100,height//4+100),(width//2+100,height//4+100),(width//2+100,height//4)]
-[(width//2-100,height//3*2),(width//2-100,height//3*2+100),(width//2+100,height//3*2+100),(width//2+100,height//3*2)]
+[(width//2-100,height//3*2),(width//2-100,height//3*2+100),(width//2+150,height//3*2+100),(width//2+150,height//3*2)]
 [(0,height//5),(100,height//5*2),(width//3,height//5*3),(width//2,height//5*4.2),(width,height//5*4),(width,height),(0,height)]
 ENDterrains
 

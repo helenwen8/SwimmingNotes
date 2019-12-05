@@ -6,8 +6,8 @@ ENDterrains
 
 dangerous
 [(width//5*4,height),(width//5*4,height//3),(width,height//3),(width,height)]
-[(width-100,height//3-10),(width//3+100,height//3-10),(width//3+100,height//3-80+35),(width-100,height//3-80+35)]
-[(width//3*2-100,height//2+35),(width//3*2-100,height//2+80-10),(110,height//2+80-10),(100,height//2+35)]
+[(width-100,height//3-30),(width//3+100,height//3-30),(width//3+100,height//3-50),(width-100,height//3-50)]
+[(width//3*2-90,height//2+25),(width//3*2-90,height//2+45),(100,height//2+45),(100,height//2+25)]
 ENDdangerous
 
 checkpoint

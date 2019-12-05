@@ -1,4 +1,5 @@
-# this is a file to assemble eveyhign question mark
+# MAIN.py
+# this is the file to assemble everything together 
 
 import sys, copy, random, time
 import pygame, pygame.midi, pygame.mask
@@ -10,10 +11,6 @@ from tp_gamemode import *
 # -----initialize pygame/pygame.midi----- #
 pygame.init()  
 pygame.midi.init()
-# there are different gamestate:
-# start - start screen      pause - pause screen
-# win/lose - result ending screen
-# and then different level state  
 gamestate = "start"
 name = None
 WHITE, BLACK = (255, 255, 255), (0, 0, 0)
@@ -93,12 +90,9 @@ while 1:
                 levelIndex = currentMission.getNextLevel(player.currentLevel)
                 player.setupCurrentLevel(currentMission, levelIndex)
                 player.x = 0 + player.radius
-    #''' DEBUG ONLY
     player.checkLegal()
-    #DEBUG ONLY '''
 
     # ---check if we died---
-    #''' DEBUG ONLY
     intersectCoord = None
     if not player.isDead:
         for i in player.currentExistables["dangerous"]:
@@ -111,8 +105,6 @@ while 1:
                 midiOutput.write_short(0x90, currentMission.tonic + 2, 127)
                 deathtime = time.time()
                 player.isDead = True
-            
-    #DEBUG ONLY '''
 
     # ---draw all the components--- 
     # draw background
@@ -143,22 +135,26 @@ while 1:
     if player.isDead and (time.time() - deathtime) >= 1.1:
         player.isDead = False
         index = player.death(screen)
-        player.setupCurrentLevel(currentMission, index)     
+        player.setupCurrentLevel(currentMission, index) 
+    # play ending tone!    
+    if player.win:
+        if (time.time() - endtime) >= 1.6:
+            # turn notes off after we played it
+            for i in range(0, 8):       
+                midiOutput.write_short(0x80, WIN_NOTES[index] + currentMission.tonic, 127)
+            gamestate = endingScreen(screen, size)      # select another level
+            currentMission = None
+            continue                # start from beginning of the loop
+        # we just won - play ending tone
+        elif (time.time() - endtime) * 1000 % 200 <= 50:   
+            index = int((time.time() - endtime) * 1000 // 200 % 8)
+            midiOutput.write_short(0x90,WIN_NOTES[index] + currentMission.tonic, 127)
 
     # ---play music--- using currentTime from the drawing part
     music = currentMission.playMusic(currentTime)
     if music != None:
         for (status, data1, data2) in music:
             midiOutput.write_short(status, data1, data2)
-
-    # play ending tune!
-    if player.win:
-        for note in WIN_NOTES:
-            midiOutput.write_short(0x90, currentMission.tonic + note, 100)
-            time.sleep(0.2)
-        gamestate = endingScreen(screen, size)      # select another level
-        currentMission = None
-        continue  
 
     # ---collision stuff---
     # music notes
@@ -176,6 +172,7 @@ while 1:
         if player.rect.colliderect(checkpoint.rect):
             if checkpoint.isChecked == False:
                 player.toCheckpoint(checkpoint)
+                # play some sounds
                 midiOutput.write_short(0x90, currentMission.tonic, 127)
                 midiOutput.write_short(0x90, currentMission.tonic + 12, 127)
                 midiOutput.write_short(0x90, currentMission.tonic + 4, 127)
@@ -184,7 +181,8 @@ while 1:
     # endpoint
     index = player.getLevelIndex(currentMission)
     if index == len(currentMission.levels) - 1:
-        if player.rect.colliderect(player.currentLevel["endpoint"].rect):
+        if (player.rect.colliderect(player.currentLevel["endpoint"].rect) and
+            not player.win):
             # turn off all the notes
             for i in range(8):              
                 for (status, data1, data2) in player.currentMusic[i]:
@@ -192,3 +190,4 @@ while 1:
                         midiOutput.write_short(status, data1, data2)
             player.win = True
             player.x, player.y = player.currentLevel["endpoint"].center   
+            endtime = time.time()

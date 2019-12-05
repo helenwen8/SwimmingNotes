@@ -1,7 +1,5 @@
-##########################################################
 # missions.py
 # this helps generate each level through reading the files
-# ########################################################
 
 import sys, copy, random, time, os
 import pygame
@@ -13,12 +11,13 @@ BLACK = (0, 0, 0)
 class Missions(object):
     # terrains grouped by types
     terrainDict = {"normal": set(), "dangerous": set()}
-    # music, grouped by timing
+    # music, grouped by timing (eighth note)
     musicDict = {i: [] for i in range(0, 8)} 
     # overall level information
-    # "terrain" = a list of Terrain objects, defined by ME
-    # "existables" = a dictionary with key of x'es, values of all borders
-    # "collectibles" = list of (x, y) of music notes as well as their midi data
+    # terrains: terrain objects     existables: terrain masks
+    # terrainsDict: dictionary with x as key and y values as values
+    # collectibles: all the music notes object
+    # checkpoint/endpoint: corresponding objects
     levelDict = {"terrains": None, "existables": None, "terrainsDict": None, 
                  "collectibles": set(), "checkpoint": None, "endpoint": None}
     colorDict = {"terrains": None, "background": None, "collectibles": None, "endpoint": None,
